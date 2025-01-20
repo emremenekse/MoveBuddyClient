@@ -188,6 +188,8 @@ struct ErrorAlert: ViewModifier {
                         )
                         .padding(.horizontal, 24)
                     }
+                    // Error overlay için sabit bir z-index belirliyoruz
+                    .zIndex(1000)
             }
         }
     }

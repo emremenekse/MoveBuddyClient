@@ -29,7 +29,10 @@ protocol SignOutServiceProtocol: AuthenticationServiceBase {
 protocol AuthenticationServiceProtocol: SignInServiceProtocol, RegistrationServiceProtocol, SignOutServiceProtocol {}
 
 // Tüm authentication işlemlerini içeren ana servis
-final class AuthenticationService: AuthenticationServiceProtocol {
+final class AuthenticationService: ObservableObject, AuthenticationServiceProtocol {
+    // MARK: - Singleton
+    static let shared = AuthenticationService()
+    
     private let auth: Auth
     private let db: Firestore
     private let deviceVerificationService: DeviceVerificationServiceProtocol
@@ -48,9 +51,9 @@ final class AuthenticationService: AuthenticationServiceProtocol {
         currentUser != nil
     }
     
-    init(auth: Auth = Auth.auth(),
-         db: Firestore = Firestore.firestore(),
-         deviceVerificationService: DeviceVerificationServiceProtocol? = nil) {
+    private init(auth: Auth = Auth.auth(),
+                db: Firestore = Firestore.firestore(),
+                deviceVerificationService: DeviceVerificationServiceProtocol? = nil) {
         self.auth = auth
         self.db = db
         #if DEBUG
@@ -79,6 +82,12 @@ final class AuthenticationService: AuthenticationServiceProtocol {
     }
     
     func signIn(email: String, password: String) async throws {
+        // Loading state'i başlat
+        LoadingService.shared.startLoading()
+        
+        // Fonksiyon nasıl biterse bitsin loading state'i kapat
+        defer { LoadingService.shared.stopLoading() }
+        
         authStateSubject.send(.authenticating)
         
         do {
@@ -96,38 +105,33 @@ final class AuthenticationService: AuthenticationServiceProtocol {
             authStateSubject.send(.authenticated(result.user))
         } catch let error as NSError {
             authStateSubject.send(.unauthenticated)
-            
-            switch error.code {
-            case AuthErrorCode.userNotFound.rawValue:
-                throw AuthError.accountNotFound
-            case AuthErrorCode.wrongPassword.rawValue:
-                throw AuthError.invalidCredentials
-            case AuthErrorCode.networkError.rawValue:
-                throw NetworkError.noInternet
-            default:
-                throw convertFirebaseError(error)
-            }
+            throw convertFirebaseError(error)
         }
     }
     
     func register(email: String, password: String) async throws {
+        // Loading state'i başlat
+        LoadingService.shared.startLoading()
+        
+        // Fonksiyon nasıl biterse bitsin loading state'i kapat
+        defer { LoadingService.shared.stopLoading() }
+        
         authStateSubject.send(.authenticating)
         
         do {
-            // Önce cihaz doğrulaması yap
+            // Cihaz doğrulaması
             let isDeviceValid = try await deviceVerificationService.verifyDevice()
             guard isDeviceValid else {
                 authStateSubject.send(.unauthenticated)
                 throw AuthError.deviceVerificationFailed
             }
             
-            // Firebase Auth'da kullanıcı oluştur
+            // Firebase'de kullanıcı oluştur
             let result = try await auth.createUser(withEmail: email, password: password)
             
             do {
                 // Firestore'a kullanıcı verilerini kaydet
                 try await saveUserData(user: result.user, email: email)
-                // Başarılı kayıttan sonra state'i güncelle
                 authStateSubject.send(.authenticated(result.user))
             } catch {
                 // Firestore'a kayıt başarısız olursa kullanıcıyı sil
@@ -137,21 +141,7 @@ final class AuthenticationService: AuthenticationServiceProtocol {
             }
         } catch let error as NSError {
             authStateSubject.send(.unauthenticated)
-            
-            switch error.code {
-            case AuthErrorCode.emailAlreadyInUse.rawValue:
-                throw AuthError.emailAlreadyInUse
-            case AuthErrorCode.invalidEmail.rawValue:
-                throw AuthError.invalidEmail
-            case AuthErrorCode.weakPassword.rawValue:
-                throw AuthError.weakPassword
-            case AuthErrorCode.networkError.rawValue:
-                throw NetworkError.noInternet
-            case AuthErrorCode.tooManyRequests.rawValue:
-                throw AuthError.tooManyAttempts
-            default:
-                throw convertFirebaseError(error)
-            }
+            throw convertFirebaseError(error)
         }
     }
     

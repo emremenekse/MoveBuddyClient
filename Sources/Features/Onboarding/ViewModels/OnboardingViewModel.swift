@@ -7,12 +7,6 @@ final class OnboardingViewModel: ObservableObject {
     @Published var showSignIn: Bool = false
     @Published var showRegistration: Bool = false
     
-    let appViewModel: AppViewModel
-    
-    init(appViewModel: AppViewModel) {
-        self.appViewModel = appViewModel
-    }
-    
     var items: [OnboardingItem] {
         OnboardingItem.items
     }
@@ -34,17 +28,14 @@ final class OnboardingViewModel: ObservableObject {
     }
     
     func startApp() {
-        appViewModel.completeOnboarding()
         showRegistration = true
     }
     
     func goToSignIn() {
-        appViewModel.completeOnboarding()
         showSignIn = true
     }
     
     func skipOnboarding() {
-        appViewModel.completeOnboarding()
         showSignIn = true
     }
 } 

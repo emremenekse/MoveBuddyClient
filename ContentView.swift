@@ -9,6 +9,8 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var appViewModel: AppViewModel
+    @EnvironmentObject var loadingService: LoadingService
+    @EnvironmentObject var authenticationService: AuthenticationService
     
     var body: some View {
         NavigationStack {
@@ -25,7 +27,7 @@ struct ContentView: View {
                 // Çıkış butonu
                 Button(action: {
                     Task {
-                        try? await appViewModel.authService.signOut()
+                        try? await authenticationService.signOut()
                     }
                 }) {
                     Label("Çıkış Yap", systemImage: "rectangle.portrait.and.arrow.right")
@@ -39,5 +41,7 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .environmentObject(AppViewModel())
+        .environmentObject(AppViewModel.shared)
+        .environmentObject(LoadingService.shared)
+        .environmentObject(AuthenticationService.shared)
 }

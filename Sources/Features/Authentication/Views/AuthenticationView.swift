@@ -1,15 +1,12 @@
 import SwiftUI
 
 struct AuthenticationView: View {
-    @ObservedObject var appViewModel: AppViewModel
-    @StateObject private var viewModel: AuthenticationViewModel
+    @StateObject private var viewModel = AuthenticationViewModel()
+    @EnvironmentObject var appViewModel: AppViewModel
+    @EnvironmentObject var loadingService: LoadingService
+    @EnvironmentObject var authenticationService: AuthenticationService
     @State private var showLogin = false
     @State private var navigationPath = NavigationPath()
-    
-    init(appViewModel: AppViewModel) {
-        self.appViewModel = appViewModel
-        _viewModel = StateObject(wrappedValue: AuthenticationViewModel(appViewModel: appViewModel))
-    }
     
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -62,7 +59,9 @@ struct AuthenticationView: View {
                 
                 VStack(spacing: 16) {
                     Button(action: {
-                        // TODO: Apple ile giriş
+                        Task {
+                            await viewModel.signInWithApple()
+                        }
                     }) {
                         HStack {
                             Image(systemName: "apple.logo")
@@ -77,7 +76,9 @@ struct AuthenticationView: View {
                     }
                     
                     Button(action: {
-                        // TODO: Google ile giriş
+                        Task {
+                            await viewModel.signInWithGoogle()
+                        }
                     }) {
                         HStack {
                             Image(systemName: "g.circle.fill")
@@ -97,7 +98,7 @@ struct AuthenticationView: View {
             .navigationDestination(for: String.self) { route in
                 switch route {
                 case "registration":
-                    RegistrationView(appViewModel: appViewModel)
+                    RegistrationView()
                 default:
                     EmptyView()
                 }
@@ -108,5 +109,8 @@ struct AuthenticationView: View {
 }
 
 #Preview {
-    AuthenticationView(appViewModel: AppViewModel())
+    AuthenticationView()
+        .environmentObject(AppViewModel.shared)
+        .environmentObject(LoadingService.shared)
+        .environmentObject(AuthenticationService.shared)
 } 

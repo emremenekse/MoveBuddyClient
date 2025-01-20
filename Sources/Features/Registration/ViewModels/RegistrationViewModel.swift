@@ -8,40 +8,26 @@ final class RegistrationViewModel: ObservableObject {
     @Published var password: String = ""
     @Published var passwordConfirmation: String = ""
     @Published var errorMessage: String?
-    @Published var isLoading: Bool = false
     @Published var isRegistrationSuccessful: Bool = false
     
-    private let registrationService: AuthenticationServiceProtocol
-    private let errorHandler: ErrorHandlingService
     private var cancellables = Set<AnyCancellable>()
     
-    init(
-        registrationService: AuthenticationServiceProtocol,
-        errorHandler: ErrorHandlingService
-    ) {
-        self.registrationService = registrationService
-        self.errorHandler = errorHandler
+    init() {
         setupSubscriptions()
     }
     
     private func setupSubscriptions() {
-        registrationService.authStatePublisher
+        AuthenticationService.shared.authStatePublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
-                Task { @MainActor in
-                    switch state {
-                    case .authenticating:
-                        self?.isLoading = true
-                    case .error(let error):
-                        self?.isLoading = false
-                        self?.isRegistrationSuccessful = false
-                        self?.errorHandler.handle(error)
-                    case .authenticated:
-                        break
-                    case .unauthenticated:
-                        self?.isLoading = false
-                        self?.isRegistrationSuccessful = false
-                    }
+                switch state {
+                case .error(let error):
+                    self?.isRegistrationSuccessful = false
+                    ErrorHandlingService.shared.handle(error)
+                case .authenticated:
+                    self?.isRegistrationSuccessful = true
+                case .unauthenticated, .authenticating:
+                    break
                 }
             }
             .store(in: &cancellables)
@@ -49,8 +35,6 @@ final class RegistrationViewModel: ObservableObject {
     
     func register() async {
         do {
-            isLoading = true
-            
             // Validasyon kontrolleri
             guard !email.isEmpty else {
                 throw ValidationError.emptyField("E-posta")
@@ -68,14 +52,11 @@ final class RegistrationViewModel: ObservableObject {
                 throw ValidationError.custom("Şifre en az 6 karakter olmalıdır")
             }
             
-            try await registrationService.register(email: email, password: password)
-            isRegistrationSuccessful = true
+            try await AuthenticationService.shared.register(email: email, password: password)
             
         } catch {
-            errorHandler.handle(error)
+            ErrorHandlingService.shared.handle(error)
             isRegistrationSuccessful = false
         }
-        
-        isLoading = false
     }
 } 

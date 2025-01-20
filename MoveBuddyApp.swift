@@ -9,6 +9,8 @@ import SwiftUI
 import UIKit
 import FirebaseCore
 import FirebaseMessaging
+import FirebaseAuth   
+import FirebaseFirestore
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(
@@ -40,7 +42,12 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct MoveBuddyApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    @StateObject private var appViewModel = AppViewModel()
+    
+    // MARK: - Global Services
+    @StateObject private var loadingService = LoadingService.shared
+    @StateObject private var errorHandlingService = ErrorHandlingService.shared
+    @StateObject private var authenticationService = AuthenticationService.shared
+    @StateObject private var appViewModel = AppViewModel.shared
     
     var body: some Scene {
         WindowGroup {
@@ -52,14 +59,20 @@ struct MoveBuddyApp: App {
                             appViewModel.determineInitialFlow()
                         }
                 case .onboarding:
-                    OnboardingView(appViewModel: appViewModel)
+                    OnboardingView()
                 case .authentication:
-                    AuthenticationView(appViewModel: appViewModel)
+                    AuthenticationView()
                 case .main:
                     ContentView()
                 }
             }
+            // Global servisleri environment'a ekle
+            .environmentObject(loadingService)
+            .environmentObject(errorHandlingService)
+            .environmentObject(authenticationService)
             .environmentObject(appViewModel)
+            // View modifier'ları
+            .withLoading(loadingService)
             .handleErrors()
             .onAppear {
                 setupGlobalErrorHandling()

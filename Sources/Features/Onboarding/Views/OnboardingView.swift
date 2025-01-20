@@ -1,11 +1,10 @@
 import SwiftUI
 
 struct OnboardingView: View {
-    @StateObject private var viewModel: OnboardingViewModel
-    
-    init(appViewModel: AppViewModel) {
-        _viewModel = StateObject(wrappedValue: OnboardingViewModel(appViewModel: appViewModel))
-    }
+    @StateObject private var viewModel = OnboardingViewModel()
+    @EnvironmentObject var appViewModel: AppViewModel
+    @EnvironmentObject var loadingService: LoadingService
+    @EnvironmentObject var authenticationService: AuthenticationService
     
     var body: some View {
         NavigationStack {
@@ -23,6 +22,7 @@ struct OnboardingView: View {
                 
                 VStack(spacing: 16) {
                     Button(action: {
+                        appViewModel.completeOnboarding()
                         viewModel.startApp()
                     }) {
                         Text("Başla")
@@ -35,6 +35,7 @@ struct OnboardingView: View {
                     }
                     
                     Button(action: {
+                        appViewModel.completeOnboarding()
                         viewModel.goToSignIn()
                     }) {
                         Text("Zaten hesabım var")
@@ -47,10 +48,10 @@ struct OnboardingView: View {
             }
             .navigationBarHidden(true)
             .navigationDestination(isPresented: $viewModel.showSignIn) {
-                AuthenticationView(appViewModel: viewModel.appViewModel)
+                AuthenticationView()
             }
             .navigationDestination(isPresented: $viewModel.showRegistration) {
-                RegistrationView(appViewModel: viewModel.appViewModel)
+                RegistrationView()
             }
         }
     }
@@ -87,8 +88,9 @@ struct OnboardingPageView: View {
 }
 
 // MARK: - Preview
-struct OnboardingView_Previews: PreviewProvider {
-    static var previews: some View {
-        OnboardingView(appViewModel: AppViewModel())
-    }
+#Preview {
+    OnboardingView()
+        .environmentObject(AppViewModel.shared)
+        .environmentObject(LoadingService.shared)
+        .environmentObject(AuthenticationService.shared)
 } 

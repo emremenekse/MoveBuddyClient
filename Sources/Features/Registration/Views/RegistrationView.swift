@@ -2,16 +2,10 @@ import SwiftUI
 import FirebaseAuth
 
 struct RegistrationView: View {
-    @ObservedObject var appViewModel: AppViewModel
-    @StateObject private var viewModel: RegistrationViewModel
-    
-    init(appViewModel: AppViewModel) {
-        self.appViewModel = appViewModel
-        _viewModel = StateObject(wrappedValue: RegistrationViewModel(
-            registrationService: appViewModel.authService,
-            errorHandler: ErrorHandlingService.shared
-        ))
-    }
+    @StateObject private var viewModel = RegistrationViewModel()
+    @EnvironmentObject var appViewModel: AppViewModel
+    @EnvironmentObject var loadingService: LoadingService
+    @EnvironmentObject var authenticationService: AuthenticationService
     
     var body: some View {
         ScrollView {
@@ -79,7 +73,6 @@ struct RegistrationView: View {
                 .padding()
                 .background(Color.blue)
                 .cornerRadius(12)
-                .disabled(viewModel.isLoading)
                 
                 Text("Kayıt olarak, Kullanım Koşulları ve Gizlilik Politikası'nı kabul etmiş olursunuz.")
                     .font(.caption)
@@ -92,12 +85,14 @@ struct RegistrationView: View {
         .ignoresSafeArea(.keyboard)
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle("Kayıt Ol")
-        
     }
 }
 
 #Preview {
     NavigationStack {
-        RegistrationView(appViewModel: AppViewModel())
+        RegistrationView()
+            .environmentObject(AppViewModel.shared)
+            .environmentObject(LoadingService.shared)
+            .environmentObject(AuthenticationService.shared)
     }
 } 

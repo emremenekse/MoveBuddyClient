@@ -5,6 +5,8 @@ import Combine
 
 @MainActor
 final class AppViewModel: ObservableObject {
+    // MARK: - Singleton
+    static let shared = AppViewModel()
     
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
     @AppStorage("isDebugMode") var isDebugMode: Bool = false
@@ -12,20 +14,16 @@ final class AppViewModel: ObservableObject {
     @Published var currentFlow: AppFlow = .determining
     @Published var currentUser: User?
     
-    // AppViewModel tüm authentication özelliklerine ihtiyaç duyduğu için
-    // AuthenticationServiceProtocol'ü kullanıyoruz (SignIn + Registration + SignOut)
-    let authService: AuthenticationServiceProtocol
     private var cancellables = Set<AnyCancellable>()
     
-    init(authService: AuthenticationServiceProtocol = AuthenticationService()) {
-        self.authService = authService
+    private init() {
         setupSubscriptions()
         determineInitialFlow()
     }
     
     private func setupSubscriptions() {
         // Auth state değişikliklerini dinle
-        authService.authStatePublisher
+        AuthenticationService.shared.authStatePublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
                 if self?.isDebugMode == true {
@@ -75,7 +73,7 @@ final class AppViewModel: ObservableObject {
         
         if !hasCompletedOnboarding {
             currentFlow = .onboarding
-        } else if authService.isAuthenticated {
+        } else if AuthenticationService.shared.isAuthenticated {
             currentFlow = .main
         } else {
             currentFlow = .authentication
