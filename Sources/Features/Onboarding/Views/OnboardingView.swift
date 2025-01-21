@@ -33,15 +33,6 @@ struct OnboardingView: View {
                             .background(Color.blue)
                             .cornerRadius(12)
                     }
-                    
-                    Button(action: {
-                        appViewModel.completeOnboarding()
-                        viewModel.goToSignIn()
-                    }) {
-                        Text("Zaten hesabım var")
-                            .font(.subheadline)
-                            .foregroundColor(.blue)
-                    }
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 32)

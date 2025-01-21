@@ -52,19 +52,7 @@ struct MoveBuddyApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                switch appViewModel.currentFlow {
-                case .determining:
-                    ProgressView()
-                        .onAppear {
-                            appViewModel.determineInitialFlow()
-                        }
-                case .onboarding:
-                    OnboardingView()
-                case .authentication:
-                    AuthenticationView()
-                case .main:
-                    ContentView()
-                }
+                appViewModel.currentFlow.view
             }
             // Global servisleri environment'a ekle
             .environmentObject(loadingService)
@@ -74,17 +62,19 @@ struct MoveBuddyApp: App {
             // View modifier'ları
             .withLoading(loadingService)
             .handleErrors()
-            .onAppear {
-                setupGlobalErrorHandling()
+            .task {
+                do {
+                    try await setupGlobalErrorHandling()
+                } catch {
+                    print("Global error handling setup failed: \(error)")
+                }
             }
         }
     }
     
-    private func setupGlobalErrorHandling() {
-        Task { @MainActor in
-            for await error in ErrorHandlingService.shared.errorStream() {
-                ErrorHandlingService.shared.handle(error)
-            }
+    private func setupGlobalErrorHandling() async throws {
+        for try await error in ErrorHandlingService.shared.errorStream() {
+            ErrorHandlingService.shared.handle(error)
         }
     }
 }

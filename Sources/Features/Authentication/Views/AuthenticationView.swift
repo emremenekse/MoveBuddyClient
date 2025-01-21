@@ -5,7 +5,6 @@ struct AuthenticationView: View {
     @EnvironmentObject var appViewModel: AppViewModel
     @EnvironmentObject var loadingService: LoadingService
     @EnvironmentObject var authenticationService: AuthenticationService
-    @State private var showLogin = false
     @State private var navigationPath = NavigationPath()
     
     var body: some View {
@@ -34,9 +33,7 @@ struct AuthenticationView: View {
                             .cornerRadius(12)
                     }
                     
-                    Button(action: {
-                        showLogin = true
-                    }) {
+                    NavigationLink(value: "signin") {
                         Text("Giriş Yap")
                             .font(.headline)
                             .foregroundColor(.blue)
@@ -99,6 +96,8 @@ struct AuthenticationView: View {
                 switch route {
                 case "registration":
                     RegistrationView()
+                case "signin":
+                    SignInView()
                 default:
                     EmptyView()
                 }

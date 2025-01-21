@@ -11,81 +11,114 @@ final class AppViewModel: ObservableObject {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
     @AppStorage("isDebugMode") var isDebugMode: Bool = false
     
-    @Published var currentFlow: AppFlow = .determining
+    @Published var currentFlow: AppFlow = .onboarding
     @Published var currentUser: User?
     
     private var cancellables = Set<AnyCancellable>()
+    private let initialSetupService: InitialSetupService
     
-    private init() {
-        setupSubscriptions()
-        determineInitialFlow()
+    private init(initialSetupService: InitialSetupService = .shared) {
+        self.initialSetupService = initialSetupService
+        determineCurrentFlow()
     }
     
-    private func setupSubscriptions() {
+    private func setupSubscriptions() async {
         // Auth state değişikliklerini dinle
-        AuthenticationService.shared.authStatePublisher
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] state in
-                if self?.isDebugMode == true {
-                    // Debug modda her zaman OnBoarding'de kal
-                    self?.currentFlow = .onboarding
-                    return
-                }
-                
-                switch state {
-                case .authenticated(let user):
-                    self?.currentUser = user
-                    self?.currentFlow = .main
-                case .unauthenticated:
-                    self?.currentUser = nil
-                    if self?.hasCompletedOnboarding == true {
-                        self?.currentFlow = .authentication
-                    } else {
-                        self?.currentFlow = .onboarding
+        await withCheckedContinuation { continuation in
+            AuthenticationService.shared.authStatePublisher
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] state in
+                    guard let self = self else { return }
+                    
+                    if self.isDebugMode {
+                        // Debug modda her zaman OnBoarding'de kal
+                        self.currentFlow = .onboarding
+                        return
                     }
-                case .error:
-                    self?.currentUser = nil
-                    if self?.hasCompletedOnboarding == true {
-                        self?.currentFlow = .authentication
-                    } else {
-                        self?.currentFlow = .onboarding
+                    
+                    switch state {
+                    case .authenticated(let user):
+                        self.currentUser = user
+                        if self.initialSetupService.hasCompletedInitialSetup {
+                            self.currentFlow = .main
+                        } else {
+                            self.currentFlow = .initialSetup
+                        }
+                    case .unauthenticated:
+                        self.currentUser = nil
+                        if self.hasCompletedOnboarding {
+                            if self.initialSetupService.hasCompletedInitialSetup {
+                                self.currentFlow = .main
+                            } else {
+                                self.currentFlow = .initialSetup
+                            }
+                        } else {
+                            self.currentFlow = .onboarding
+                        }
+                    case .error:
+                        self.currentUser = nil
+                        if self.hasCompletedOnboarding {
+                            if self.initialSetupService.hasCompletedInitialSetup {
+                                self.currentFlow = .main
+                            } else {
+                                self.currentFlow = .initialSetup
+                            }
+                        } else {
+                            self.currentFlow = .onboarding
+                        }
+                    case .authenticating:
+                        break // Loading durumunda flow değişmez
                     }
-                case .authenticating:
-                    break // Loading durumunda flow değişmez
                 }
-            }
-            .store(in: &cancellables)
-    }
-    
-    enum AppFlow {
-        case determining
-        case onboarding
-        case authentication
-        case main
-    }
-    
-    func determineInitialFlow() {
-        if isDebugMode {
-            // Debug modda her zaman OnBoarding'den başla
-            currentFlow = .onboarding
-            return
+                .store(in: &self.cancellables)
+            
+            continuation.resume()
         }
-        
+    }
+    
+    func determineCurrentFlow() {
         if !hasCompletedOnboarding {
             currentFlow = .onboarding
-        } else if AuthenticationService.shared.isAuthenticated {
-            currentFlow = .main
+        } else if !initialSetupService.hasCompletedInitialSetup {
+            currentFlow = .initialSetup
         } else {
-            currentFlow = .authentication
+            currentFlow = .main
         }
     }
     
     func completeOnboarding() {
         hasCompletedOnboarding = true
-        currentFlow = .authentication
+        currentFlow = .initialSetup
     }
     
-    func completeAuthentication() {
+    func completeInitialSetup() {
         currentFlow = .main
+    }
+    
+    func clearUserInfo() {
+        initialSetupService.clearUserInfo()
+        determineCurrentFlow()
+    }
+}
+
+// MARK: - Models
+enum AppFlow {
+    case onboarding
+    case initialSetup
+    case main
+}
+
+// MARK: - View Extensions
+extension AppFlow {
+    @ViewBuilder
+    var view: some View {
+        switch self {
+        case .onboarding:
+            OnboardingView()
+        case .initialSetup:
+            InitialSetupView()
+        case .main:
+            MainTabView()
+        }
     }
 } 
