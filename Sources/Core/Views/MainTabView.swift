@@ -1,42 +1,36 @@
 import SwiftUI
 
 struct MainTabView: View {
-    @State private var selectedTab: TabItem = .dashboard
+    @StateObject private var appViewModel = AppViewModel.shared
+    @State private var selectedTab = 0
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            // TODO: Implement DashboardView
-            Text("Dashboard")
+            DashboardView()
                 .tabItem {
-                    Label(TabItem.dashboard.title,
-                          systemImage: TabItem.dashboard.iconName)
+                    Label("Ana Sayfa", systemImage: "house.fill")
                 }
-                .tag(TabItem.dashboard)
+                .tag(0)
             
-            // TODO: Implement ExercisesView
-            Text("Exercises")
+            ExercisesView()
                 .tabItem {
-                    Label(TabItem.exercises.title,
-                          systemImage: TabItem.exercises.iconName)
+                    Label("Egzersizler", systemImage: "figure.walk")
                 }
-                .tag(TabItem.exercises)
+                .tag(1)
             
-            // TODO: Implement StatisticsView
             Text("Statistics")
                 .tabItem {
-                    Label(TabItem.statistics.title,
-                          systemImage: TabItem.statistics.iconName)
+                    Label("İstatistikler", systemImage: "chart.bar.fill")
                 }
-                .tag(TabItem.statistics)
+                .tag(2)
             
             ProfileView()
                 .tabItem {
-                    Label(TabItem.profile.title,
-                          systemImage: TabItem.profile.iconName)
+                    Label("Profil", systemImage: "person.fill")
                 }
-                .tag(TabItem.profile)
+                .tag(3)
         }
-        .tint(.blue) // TabBar rengi
+        .tint(.blue)
     }
 }
 
