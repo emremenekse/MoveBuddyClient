@@ -15,13 +15,13 @@ final class DashboardViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private let initialSetupService: InitialSetupService
     
-    init(initialSetupService: InitialSetupService = .shared) {
+    nonisolated init(initialSetupService: InitialSetupService = .shared) {
         self.initialSetupService = initialSetupService
-        Task {
-            await loadUserInfo()
-            await loadDummyData()
+        
+        Task { @MainActor in
+            await self.loadUserInfo()
+            await self.loadDummyData()
         }
-        setupSubscriptions()
     }
     
     func refreshData() async {
@@ -30,7 +30,7 @@ final class DashboardViewModel: ObservableObject {
     }
     
     private func loadUserInfo() async {
-        guard let userInfo = try? await Task { try initialSetupService.getUserInfo() }.value else { return }
+        guard let userInfo = try? await initialSetupService.getUserInfo() else { return }
         userName = userInfo.name
     }
     

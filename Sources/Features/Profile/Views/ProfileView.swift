@@ -47,26 +47,32 @@ struct ProfileView: View {
                 // MARK: - Çalışma Programı
                 Section("Çalışma Programı") {
                     ForEach(WeekDay.allCases, id: \.self) { day in
-                        if let workDay = viewModel.workSchedule.workDays[day] {
-                            HStack {
-                                Text(day.rawValue)
-                                Spacer()
-                                Text("\(workDay.startHour):00 - \(workDay.endHour):00")
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                }
-                
-                // MARK: - Hesap İşlemleri
-                Section {
-                    Button(role: .destructive) {
-                        viewModel.signOut()
-                    } label: {
                         HStack {
-                            Text("Çıkış Yap")
+                            Text(day.rawValue)
                             Spacer()
-                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                            if let workDay = viewModel.workSchedule.workDays[day] {
+                                HStack(spacing: 8) {
+                                    Text("\(workDay.startHour):00 - \(workDay.endHour):00")
+                                        .foregroundColor(.secondary)
+                                    Button(role: .destructive) {
+                                        var newWorkDays = viewModel.workSchedule.workDays
+                                        newWorkDays.removeValue(forKey: day)
+                                        viewModel.workSchedule.workDays = newWorkDays
+                                    } label: {
+                                        Image(systemName: "minus.circle.fill")
+                                            .foregroundColor(.red)
+                                    }
+                                }
+                            } else {
+                                Button {
+                                    var newWorkDays = viewModel.workSchedule.workDays
+                                    newWorkDays[day] = WorkSchedule.WorkDay(startHour: 9, endHour: 17)
+                                    viewModel.workSchedule.workDays = newWorkDays
+                                } label: {
+                                    Image(systemName: "plus.circle.fill")
+                                        .foregroundColor(.blue)
+                                }
+                            }
                         }
                     }
                 }

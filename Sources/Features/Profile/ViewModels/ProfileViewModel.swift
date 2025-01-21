@@ -15,7 +15,6 @@ final class ProfileViewModel: ObservableObject {
     private var originalUserInfo: InitialUserInfo?
     private var cancellables = Set<AnyCancellable>()
     private let initialSetupService: InitialSetupService
-    private let authenticationService: AuthenticationService
     
     // MARK: - Computed Properties
     var hasChanges: Bool {
@@ -28,10 +27,8 @@ final class ProfileViewModel: ObservableObject {
     }
     
     // MARK: - Initialization
-    nonisolated init(initialSetupService: InitialSetupService = .shared,
-         authenticationService: AuthenticationService = .shared) {
+    nonisolated init(initialSetupService: InitialSetupService = .shared) {
         self.initialSetupService = initialSetupService
-        self.authenticationService = authenticationService
         
         Task { @MainActor in
             await self.loadUserInfo()
@@ -50,20 +47,16 @@ final class ProfileViewModel: ObservableObject {
             
             try await initialSetupService.saveUserInfo(userInfo)
             originalUserInfo = userInfo
+            name = userInfo.name
+            workspaceTypes = userInfo.workspaceType
+            exercisePreferences = userInfo.exercisePreferences
+            workSchedule = userInfo.workSchedule
+            
+            showError = false
+            errorMessage = ""
         } catch {
             showError = true
             errorMessage = error.localizedDescription
-        }
-    }
-    
-    func signOut() {
-        Task { @MainActor in
-            do {
-                try await authenticationService.signOut()
-            } catch {
-                showError = true
-                errorMessage = error.localizedDescription
-            }
         }
     }
     

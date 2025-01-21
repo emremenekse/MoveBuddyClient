@@ -6,7 +6,7 @@ import Combine
 @MainActor
 final class AppViewModel: ObservableObject {
     // MARK: - Singleton
-    static let shared = AppViewModel()
+    static let shared = { @MainActor in AppViewModel() }()
     
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
     @AppStorage("isDebugMode") var isDebugMode: Bool = false
