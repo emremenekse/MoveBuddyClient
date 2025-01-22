@@ -5,6 +5,7 @@ import Combine
 final class ExercisesViewModel: ObservableObject {
     // MARK: - Properties
     private let exercisesService: ExercisesService
+    private let userExercisesService: UserExercisesService
     
     // MARK: - Published Properties
     @Published private(set) var exercises: [Exercise] = []
@@ -45,8 +46,12 @@ final class ExercisesViewModel: ObservableObject {
     }
     
     // MARK: - Initialization
-    init(exercisesService: ExercisesService = .shared) {
+    init(
+        exercisesService: ExercisesService = .shared,
+        userExercisesService: UserExercisesService = .shared
+    ) {
         self.exercisesService = exercisesService
+        self.userExercisesService = userExercisesService
         setupBindings()
         Task {
             await loadExercises()
@@ -66,6 +71,18 @@ final class ExercisesViewModel: ObservableObject {
         searchText = text
     }
     
+    func isExerciseSelected(_ exerciseId: String) -> Bool {
+        userExercisesService.isExerciseSelected(exerciseId)
+    }
+    
+    func addExercise(_ exerciseId: String, reminderInterval: ReminderInterval) {
+        userExercisesService.addExercise(exerciseId, reminderInterval: reminderInterval)
+    }
+    
+    func removeExercise(_ exerciseId: String) {
+        userExercisesService.removeExercise(withId: exerciseId)
+    }
+    
     // MARK: - Private Methods
     private func setupBindings() {
         exercisesService.$isLoading
@@ -79,6 +96,16 @@ final class ExercisesViewModel: ObservableObject {
         
         exercisesService.$exercises
             .assign(to: \.exercises, on: self)
+            .store(in: &cancellables)
+            
+        // UserExercisesService değişikliklerini dinle
+        userExercisesService.$selectedExercises
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                Task { @MainActor in
+                    self?.objectWillChange.send()
+                }
+            }
             .store(in: &cancellables)
     }
     

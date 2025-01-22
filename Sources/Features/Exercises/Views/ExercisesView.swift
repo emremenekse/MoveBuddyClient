@@ -4,6 +4,8 @@ struct ExercisesView: View {
     @StateObject private var viewModel = ExercisesViewModel()
     @State private var searchText = ""
     @State private var selectedExercise: Exercise?
+    @State private var showingReminderSheet = false
+    @State private var showingDetailSheet = false
     
     var body: some View {
         NavigationView {
@@ -56,11 +58,24 @@ struct ExercisesView: View {
                     )
                 } else {
                     List(viewModel.filteredExercises) { exercise in
-                        ExerciseRow(exercise: exercise)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
+                        ExerciseRow(
+                            exercise: exercise,
+                            isSelected: viewModel.isExerciseSelected(exercise.id),
+                            onAddTap: {
                                 selectedExercise = exercise
+                                showingReminderSheet = true
+                            },
+                            onRemoveTap: {
+                                viewModel.removeExercise(exercise.id)
                             }
+                        )
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            selectedExercise = exercise
+                            showingDetailSheet = true
+                        }
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
                     }
                     .listStyle(.plain)
                 }
@@ -76,8 +91,29 @@ struct ExercisesView: View {
                 ),
                 prompt: "Egzersiz Ara"
             )
-            .sheet(item: $selectedExercise) { exercise in
-                ExerciseDetailSheet(exercise: exercise)
+            .sheet(isPresented: $showingReminderSheet) {
+                if let exercise = selectedExercise {
+                    NavigationView {
+                        ReminderIntervalSheet(exercise: exercise, viewModel: viewModel)
+                    }
+                }
+            }
+            .sheet(isPresented: $showingDetailSheet) {
+                if let exercise = selectedExercise {
+                    NavigationView {
+                        ExerciseDetailSheet(exercise: exercise)
+                    }
+                }
+            }
+            .onChange(of: showingReminderSheet) { newValue in
+                if !newValue {
+                    selectedExercise = nil
+                }
+            }
+            .onChange(of: showingDetailSheet) { newValue in
+                if !newValue {
+                    selectedExercise = nil
+                }
             }
         }
     }
@@ -109,39 +145,68 @@ private struct FilterChip: View {
 
 private struct ExerciseRow: View {
     let exercise: Exercise
+    let isSelected: Bool
+    let onAddTap: () -> Void
+    let onRemoveTap: () -> Void
     
     var body: some View {
         HStack(spacing: 16) {
-            // Egzersiz görseli
-            if let imageURL = exercise.imageURL {
-                AsyncImage(url: imageURL) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    Color(.systemGray5)
-                }
-                .frame(width: 60, height: 60)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-            } else {
-                Image(systemName: "figure.walk")
-                    .font(.title)
-                    .foregroundColor(.secondary)
+            // Egzersiz görseli ve bilgileri
+            HStack(spacing: 16) {
+                // Egzersiz görseli
+                if let imageURL = exercise.imageURL {
+                    AsyncImage(url: imageURL) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Color(.systemGray5)
+                    }
                     .frame(width: 60, height: 60)
-                    .background(Color(.systemGray6))
                     .clipShape(RoundedRectangle(cornerRadius: 8))
+                } else {
+                    Image(systemName: "figure.walk")
+                        .font(.title)
+                        .foregroundColor(.secondary)
+                        .frame(width: 60, height: 60)
+                        .background(Color(.systemGray6))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                
+                // Egzersiz bilgileri
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(exercise.name)
+                        .font(.headline)
+                    
+                    Text(exercise.description)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                }
             }
             
-            // Egzersiz bilgileri
-            VStack(alignment: .leading, spacing: 4) {
-                Text(exercise.name)
-                    .font(.headline)
-                
-                Text(exercise.description)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .lineLimit(2)
+            Spacer()
+            
+            // Ekleme/Kaldırma butonu
+            Group {
+                if isSelected {
+                    Button(action: onRemoveTap) {
+                        Image(systemName: "minus.circle.fill")
+                            .foregroundColor(.red)
+                            .font(.title2)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Button(action: onAddTap) {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(.blue)
+                            .font(.title2)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
+            .contentShape(Rectangle())
+            .onTapGesture { } // Buton tıklamalarının row'a yayılmasını engelle
         }
         .padding(.vertical, 8)
     }
