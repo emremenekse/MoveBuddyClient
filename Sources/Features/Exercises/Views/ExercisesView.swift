@@ -217,66 +217,60 @@ private struct ExerciseDetailSheet: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
-            ScrollView {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                // Görsel veya Video
+                if let videoURL = exercise.videoURL {
+                    Link(destination: videoURL) {
+                        VideoPlaceholder()
+                    }
+                } else if let imageURL = exercise.imageURL {
+                    AsyncImage(url: imageURL) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Color(.systemGray5)
+                    }
+                    .frame(height: 200)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                } else {
+                    Color(.systemGray6)
+                        .frame(height: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay {
+                            Image(systemName: "figure.walk")
+                                .font(.largeTitle)
+                                .foregroundColor(.secondary)
+                        }
+                }
+                
                 VStack(alignment: .leading, spacing: 24) {
-                    // Görsel veya Video
-                    Group {
-                        if let videoURL = exercise.videoURL {
-                            // TODO: Video Player eklenecek
-                            Link(destination: videoURL) {
-                                VideoPlaceholder()
-                            }
-                        } else if let imageURL = exercise.imageURL {
-                            AsyncImage(url: imageURL) { image in
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                            } placeholder: {
-                                Color(.systemGray5)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 200)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                        } else {
-                            Color(.systemGray6)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 200)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                                .overlay {
-                                    Image(systemName: "figure.walk")
-                                        .font(.largeTitle)
-                                        .foregroundColor(.secondary)
-                                }
+                    // Başlık ve Süre
+                    HStack {
+                        Text(exercise.name)
+                            .font(.title2)
+                            .bold()
+                        Spacer()
+                        if let duration = exercise.formattedDuration {
+                            Label(duration, systemImage: "clock")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
                         }
                     }
                     
-                    // Egzersiz Bilgileri
-                    VStack(alignment: .leading, spacing: 16) {
-                        // Başlık ve Süre
-                        HStack {
-                            Text(exercise.name)
-                                .font(.title2)
-                                .bold()
-                            Spacer()
-                            if let duration = exercise.formattedDuration {
-                                Label(duration, systemImage: "clock")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        
-                        // Açıklama
-                        Text(exercise.description)
-                            .font(.body)
-                            .foregroundColor(.secondary)
-                        
-                        // Adımlar
-                        if let steps = exercise.steps {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Adımlar")
-                                    .font(.headline)
-                                
+                    // Açıklama
+                    Text(exercise.description)
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                    
+                    // Adımlar
+                    if let steps = exercise.steps {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Adımlar")
+                                .font(.headline)
+                            
+                            VStack(alignment: .leading, spacing: 16) {
                                 ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
                                     HStack(alignment: .top, spacing: 12) {
                                         Text("\(index + 1)")
@@ -290,12 +284,14 @@ private struct ExerciseDetailSheet: View {
                                 }
                             }
                         }
+                    }
+                    
+                    // Özellikler
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Özellikler")
+                            .font(.headline)
                         
-                        // Özellikler
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Özellikler")
-                                .font(.headline)
-                            
                             // Kategoriler
                             FlowLayout(spacing: 8) {
                                 ForEach(exercise.categories, id: \.self) { category in
@@ -329,17 +325,17 @@ private struct ExerciseDetailSheet: View {
                         }
                     }
                 }
-                .padding()
+                .padding(16)
             }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
-                    }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
                 }
             }
         }
@@ -350,7 +346,6 @@ private struct ExerciseDetailSheet: View {
 private struct VideoPlaceholder: View {
     var body: some View {
         Color(.systemGray6)
-            .frame(maxWidth: .infinity)
             .frame(height: 200)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay {
