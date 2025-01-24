@@ -59,8 +59,8 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        // Bildirimi banner olarak göster ve ses çal
-        completionHandler([.banner, .sound])
+        // Alert stili ile bildirimi göster (butonlar direkt görünür olacak)
+        completionHandler([.alert, .sound])
     }
 }
 

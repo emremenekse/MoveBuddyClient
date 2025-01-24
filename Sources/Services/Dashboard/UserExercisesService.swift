@@ -12,6 +12,11 @@ final class UserExercisesService {
     
     @Published private(set) var selectedExercises: [UserSelectedExercise] = []
     
+    // Değişiklikleri dinlemek için publisher
+    var exercisesPublisher: AnyPublisher<[UserSelectedExercise], Never> {
+        $selectedExercises.eraseToAnyPublisher()
+    }
+    
     // MARK: - Initialization
     private init() {
         loadSelectedExercises()

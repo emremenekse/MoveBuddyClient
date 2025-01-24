@@ -28,7 +28,7 @@ final class ExerciseNotificationManager {
             identifier: "EXERCISE_ACTIONS",
             actions: [completeAction, skipAction],
             intentIdentifiers: [],
-            options: []
+            options: [.customDismissAction, .hiddenPreviewsShowTitle]
         )
         
         UNUserNotificationCenter.current().setNotificationCategories([category])

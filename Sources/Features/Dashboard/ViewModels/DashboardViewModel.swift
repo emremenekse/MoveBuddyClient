@@ -30,6 +30,9 @@ final class DashboardViewModel: ObservableObject {
             await loadUserInfo()
             await loadExercises()
         }
+        
+        // Egzersiz değişikliklerini dinle
+        setupSubscriptions()
     }
     
     func refreshData() async {
@@ -137,7 +140,14 @@ final class DashboardViewModel: ObservableObject {
     private let calendar = Calendar.current
     
     private func setupSubscriptions() {
-        // TODO: Gerekli subscription'lar burada kurulacak
+        // Seçili egzersizler değiştiğinde dashboard'u güncelle
+        userExercisesService.exercisesPublisher
+            .sink { [weak self] _ in
+                Task {
+                    await self?.loadExercises()
+                }
+            }
+            .store(in: &cancellables)
     }
 }
 
