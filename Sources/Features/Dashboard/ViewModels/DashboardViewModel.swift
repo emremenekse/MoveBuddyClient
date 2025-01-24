@@ -111,7 +111,7 @@ final class DashboardViewModel: ObservableObject {
             
         // Yaklaşan egzersizler için bildirimleri planla
         print("🔔 Bildirim planlanacak egzersizler:", upcomingExercises.map { "id: \($0.id), name: \($0.name), time: \($0.scheduledTime)" })
-        notificationManager.scheduleExerciseNotifications(exercises: upcomingExercises)
+        notificationManager.rescheduleNotifications(exercises: upcomingExercises)
         
         // Haftalık istatistikler için gerçek data
         weeklyTotal = selectedExercises.count

@@ -40,7 +40,7 @@ final class InitialSetupViewModel: ObservableObject {
     }
     
     func updateWorkSchedule(for day: WeekDay, startHour: Int, endHour: Int) {
-        if startHour >= 0 && startHour < endHour && endHour <= 23 {
+        if startHour >= 0 && startHour < endHour && endHour <= 24 {  
             workSchedule[day] = WorkSchedule.WorkDay(startHour: startHour, endHour: endHour)
         }
     }

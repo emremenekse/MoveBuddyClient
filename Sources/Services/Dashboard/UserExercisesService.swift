@@ -33,6 +33,11 @@ final class UserExercisesService {
         print("➖ Egzersiz siliniyor:", id)
         selectedExercises.removeAll { $0.exerciseId == id }
         saveSelectedExercises()
+        
+        // Egzersiz silindiğinde bildirimlerini de iptal et
+        Task {
+            await ExerciseNotificationManager.shared.cancelNotifications(for: id)
+        }
     }
     
     func isExerciseSelected(_ exerciseId: String) -> Bool {

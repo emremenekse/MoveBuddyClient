@@ -88,7 +88,7 @@ struct InitialSetupView: View {
                                     subtitle: "Ekle",
                                     isSelected: false
                                 ) {
-                                    viewModel.updateWorkSchedule(for: day, startHour: 9, endHour: 23)
+                                    viewModel.updateWorkSchedule(for: day, startHour: 0, endHour: 24)
                                 }
                             }
                         }

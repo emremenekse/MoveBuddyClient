@@ -63,4 +63,31 @@ final class ExerciseNotificationManager {
             }
         }
     }
+    
+    // Tüm bildirimleri iptal et
+    func cancelAllNotifications() {
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+    }
+    
+    // Belirli bir egzersizin bildirimlerini iptal et
+    func cancelNotifications(for exerciseId: String) async {
+        await service.cancelNotification(for: exerciseId)
+    }
+    
+    // Bildirimleri yeniden planla
+    func rescheduleNotifications(exercises: [UpcomingExercise]) {
+        Task {
+            // Önce tüm bildirimleri iptal et
+            cancelAllNotifications()
+            
+            // Sonra yeni bildirimleri planla
+            for exercise in exercises {
+                do {
+                    try await service.scheduleNotification(for: exercise)
+                } catch {
+                    print("⚠️ Bildirim planlanamadı: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
 }
