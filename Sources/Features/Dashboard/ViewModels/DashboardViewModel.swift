@@ -69,7 +69,7 @@ final class DashboardViewModel: ObservableObject {
             return
         }
         
-        // Her egzersiz için gelecek 5 zamanı al ve birleştir
+        // Her egzersiz için gelecek zamanları al ve birleştir
         var allUpcomingExercises: [(Exercise, Date)] = []
         
         for selectedExercise in selectedExercises {
@@ -77,15 +77,19 @@ final class DashboardViewModel: ObservableObject {
                 continue
             }
             
-            let nextTimes = selectedExercise.reminderInterval.nextOccurrences(from: now, workSchedule: schedule)
+            // Bildirimler için daha uzun bir süre al (örn: 1 hafta)
+            let nextTimes = selectedExercise.reminderInterval.nextOccurrences(from: now, workSchedule: schedule, limit: 50)
             let exerciseTimes = nextTimes.map { (exercise, $0) }
             allUpcomingExercises.append(contentsOf: exerciseTimes)
         }
         
-        // Tüm zamanları sırala ve ilk 5'ini al
-        upcomingExercises = allUpcomingExercises
+        // Tüm zamanları sırala
+        let sortedExercises = allUpcomingExercises
             .filter { $0.1 > now }
             .sorted { $0.1 < $1.1 }
+        
+        // Dashboard için sadece ilk 5'ini göster
+        upcomingExercises = sortedExercises
             .prefix(5)
             .map { pair in
                 let dateFormatter = DateFormatter()
@@ -109,9 +113,20 @@ final class DashboardViewModel: ObservableObject {
                 )
             }
             
-        // Yaklaşan egzersizler için bildirimleri planla
-        print("🔔 Bildirim planlanacak egzersizler:", upcomingExercises.map { "id: \($0.id), name: \($0.name), time: \($0.scheduledTime)" })
-        notificationManager.rescheduleNotifications(exercises: upcomingExercises)
+        // TÜM egzersizler için bildirimleri planla
+        let allNotifications = sortedExercises.map { pair in
+            UpcomingExercise(
+                id: UUID().uuidString,
+                name: pair.0.name,
+                scheduledTime: pair.1,
+                time: "", // Bildirimler için time string'e gerek yok
+                duration: pair.0.durationSeconds.map { $0 / 60 } ?? 0,
+                iconName: pair.0.categories.first?.icon ?? "figure.walk"
+            )
+        }
+        
+        print("🔔 Bildirim planlanacak egzersizler:", allNotifications.map { "id: \($0.id), name: \($0.name), time: \($0.scheduledTime)" })
+        notificationManager.rescheduleNotifications(exercises: allNotifications)
         
         // Haftalık istatistikler için gerçek data
         weeklyTotal = selectedExercises.count
