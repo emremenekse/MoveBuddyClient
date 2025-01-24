@@ -11,8 +11,9 @@ import FirebaseCore
 import FirebaseMessaging
 import FirebaseAuth   
 import FirebaseFirestore
+import UserNotifications
 
-class AppDelegate: NSObject, UIApplicationDelegate {
+class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
@@ -22,6 +23,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         
         // Push bildirimleri yapılandır
         PushNotificationService.shared.configure()
+        
+        // Bildirim delegate'ini ayarla
+        UNUserNotificationCenter.current().delegate = self
         
         return true
     }
@@ -36,6 +40,27 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                     didFailToRegisterForRemoteNotificationsWithError error: Error) {
         print("❌ Failed to register for remote notifications: \(error.localizedDescription)")
+    }
+    
+    // MARK: - Notification Delegate Methods
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        // Bildirim yanıtını ExerciseNotificationManager'a ilet
+        ExerciseNotificationManager.shared.handleNotificationResponse(response)
+        completionHandler()
+    }
+    
+    // Uygulama açıkken bildirim geldiğinde
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        // Bildirim banner'ını ve sesini göster
+        completionHandler([.banner, .sound])
     }
 }
 

@@ -1,6 +1,7 @@
 import Foundation
 
 enum ReminderInterval: Int, CaseIterable, Identifiable, Codable {
+    case oneMinute = 1
     case fifteenMinutes = 15
     case thirtyMinutes = 30
     case oneHour = 60
@@ -11,6 +12,7 @@ enum ReminderInterval: Int, CaseIterable, Identifiable, Codable {
     
     var title: String {
         switch self {
+        case .oneMinute: return "1 dakika"
         case .fifteenMinutes: return "15 dakika"
         case .thirtyMinutes: return "30 dakika"
         case .oneHour: return "1 saat"

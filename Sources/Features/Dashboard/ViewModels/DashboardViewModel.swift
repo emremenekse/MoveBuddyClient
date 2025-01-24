@@ -17,6 +17,7 @@ final class DashboardViewModel: ObservableObject {
     private var exercisesService: ExercisesService
     private var userExercisesService: UserExercisesService
     private var workSchedule: WorkSchedule?
+    private let notificationManager = ExerciseNotificationManager.shared
     
     init() {
         // Servisleri init sırasında başlat
@@ -99,13 +100,18 @@ final class DashboardViewModel: ObservableObject {
                 }
                 
                 return UpcomingExercise(
-                    id: UUID(),
+                    id: UUID().uuidString,
                     name: pair.0.name,
+                    scheduledTime: pair.1,
                     time: dateFormatter.string(from: pair.1),
                     duration: pair.0.durationSeconds.map { $0 / 60 } ?? 0,
                     iconName: pair.0.categories.first?.icon ?? "figure.walk"
                 )
             }
+            
+        // Yaklaşan egzersizler için bildirimleri planla
+        print("🔔 Bildirim planlanacak egzersizler:", upcomingExercises.map { "id: \($0.id), name: \($0.name), time: \($0.scheduledTime)" })
+        notificationManager.scheduleExerciseNotifications(exercises: upcomingExercises)
         
         // Haftalık istatistikler için gerçek data
         weeklyTotal = selectedExercises.count
@@ -121,10 +127,15 @@ final class DashboardViewModel: ObservableObject {
 }
 
 // MARK: - Models
-struct UpcomingExercise: Identifiable {
-    let id: UUID
+struct UpcomingExercise: Identifiable, Codable {
+    let id: String
     let name: String
+    let scheduledTime: Date
     let time: String
     let duration: Int
     let iconName: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id, name, scheduledTime, time, duration, iconName
+    }
 }
