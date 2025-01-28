@@ -76,9 +76,13 @@ final class ExerciseNotificationService: ExerciseNotificationServiceProtocol {
     func handleNotificationResponse(exerciseId: String, action: ExerciseAction) async throws {
         switch action {
         case .complete:
-            print("Egzersiz tamamlandı: \(exerciseId)")
+            print("✅ Egzersiz tamamlandı: \(exerciseId)")
+            await MainActor.run {
+                UserExercisesService.shared.completeExercise(exerciseId)
+            }
         case .skip:
-            print("Egzersiz atlandı: \(exerciseId)")
+            print("⏭️ Egzersiz atlandı: \(exerciseId)")
+            // TODO: Skip işlemi için ayrı bir mantık eklenebilir
         }
     }
     

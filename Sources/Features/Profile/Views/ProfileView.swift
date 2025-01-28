@@ -66,7 +66,7 @@ struct ProfileView: View {
                             } else {
                                 Button {
                                     var newWorkDays = viewModel.workSchedule.workDays
-                                    newWorkDays[day] = WorkSchedule.WorkDay(startHour: 9, endHour: 17)
+                                    newWorkDays[day] = WorkSchedule.WorkDay(startHour: 9, endHour: 24)
                                     viewModel.workSchedule.workDays = newWorkDays
                                 } label: {
                                     Image(systemName: "plus.circle.fill")

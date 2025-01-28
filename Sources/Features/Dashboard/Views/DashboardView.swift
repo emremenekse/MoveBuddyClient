@@ -37,9 +37,32 @@ private struct DailySummaryCard: View {
                 .font(.headline)
             
             HStack(spacing: 24) {
-                StatView(title: "Tamamlanan", value: "\(viewModel.completedExercises)", icon: "checkmark.circle.fill")
-                StatView(title: "Kalan", value: "\(viewModel.remainingExercises)", icon: "clock.fill")
-                StatView(title: "Toplam Süre", value: "\(viewModel.totalMinutes) dk", icon: "timer")
+                // Tamamlanan egzersizler
+                StatView(
+                    title: "Tamamlanan",
+                    value: "\(viewModel.completedToday)",
+                    subtitle: "egzersiz",
+                    icon: "checkmark.circle.fill",
+                    color: .green
+                )
+                
+                // Harcanan süre
+                StatView(
+                    title: "Toplam Süre",
+                    value: "\(viewModel.completedMinutesToday)",
+                    subtitle: "dakika",
+                    icon: "timer",
+                    color: .blue
+                )
+                
+                // Kalan egzersizler (günlük hedef)
+                StatView(
+                    title: "Günlük Hedef",
+                    value: "\(viewModel.remainingToday)",
+                    subtitle: "kalan",
+                    icon: "target",
+                    color: .orange
+                )
             }
         }
         .padding()
@@ -98,9 +121,29 @@ private struct StatisticsSummaryCard: View {
                 .font(.headline)
             
             HStack(spacing: 24) {
-                StatView(title: "Toplam", value: "\(viewModel.weeklyTotal)", icon: "sum")
-                StatView(title: "Ortalama", value: "\(viewModel.weeklyAverage)/gün", icon: "chart.bar.fill")
-                StatView(title: "En İyi", value: "\(viewModel.weeklyBest)", icon: "star.fill")
+                StatView(
+                    title: "Toplam",
+                    value: "\(viewModel.weeklyTotal)",
+                    subtitle: "egzersiz",
+                    icon: "sum",
+                    color: .purple
+                )
+                
+                StatView(
+                    title: "Ortalama",
+                    value: "\(viewModel.weeklyAverage)",
+                    subtitle: "günlük",
+                    icon: "chart.bar.fill",
+                    color: .blue
+                )
+                
+                StatView(
+                    title: "En İyi",
+                    value: "\(viewModel.weeklyBest)",
+                    subtitle: "egzersiz",
+                    icon: "star.fill",
+                    color: .yellow
+                )
             }
         }
         .padding()
@@ -112,22 +155,29 @@ private struct StatisticsSummaryCard: View {
 private struct StatView: View {
     let title: String
     let value: String
+    let subtitle: String
     let icon: String
+    let color: Color
     
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.title2)
-                .foregroundColor(.blue)
+                .foregroundColor(color)
             
             Text(value)
-                .font(.headline)
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(color)
             
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondary)
+            
+            Text(subtitle)
+                .font(.caption2)
+                .foregroundColor(.secondary)
         }
-        .frame(maxWidth: .infinity)
     }
 }
 

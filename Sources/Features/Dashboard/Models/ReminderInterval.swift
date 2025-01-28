@@ -59,9 +59,11 @@ enum ReminderInterval: Int, CaseIterable, Identifiable, Codable {
             
             // O gün için tüm interval'ları hesapla
             var timeInMinutes = startTimeInMinutes
-            if currentTimeInMinutes > startTimeInMinutes {
-                // Şu anki zamandan sonraki ilk interval'ı bul
-                timeInMinutes = ceil((currentTimeInMinutes - startTimeInMinutes) / intervalMinutes) * intervalMinutes + startTimeInMinutes
+            
+            // Eğer bugünse ve şu anki zaman başlangıç ile bitiş arasındaysa
+            if dayOffset == 0 && currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes <= endTimeInMinutes {
+                // Şu anki zamanı başlangıç olarak al
+                timeInMinutes = currentTimeInMinutes
             }
             
             // Bitiş saatine kadar olan tüm interval'ları ekle

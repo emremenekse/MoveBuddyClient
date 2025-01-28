@@ -12,12 +12,42 @@ final class DashboardViewModel: ObservableObject {
     @Published var weeklyAverage: Double = 0
     @Published var weeklyBest: Int = 0
     
+    // Günlük özet için hesaplanan değerler
+    var completedToday: Int {
+        userExercisesService.completedExercises
+            .filter { Calendar.current.isDateInToday($0.completedAt) }
+            .count
+    }
+    
+    var remainingToday: Int {
+        allUpcomingExercisesForTodayTarget
+            .filter { Calendar.current.isDateInToday($0.1) }
+            .count
+    }
+    
+    var completedMinutesToday: Int {
+        let todayCompleted = userExercisesService.completedExercises
+            .filter { Calendar.current.isDateInToday($0.completedAt) }
+        
+        return todayCompleted.reduce(0) { total, completed in
+            if let exercise = exercisesService.exercises.first(where: { $0.id == completed.exerciseId }) {
+                return total + (exercise.durationSeconds ?? 0) / 60
+            }
+            return total
+        }
+    }
+    
     private var cancellables = Set<AnyCancellable>()
     private var initialSetupService: InitialSetupService
     private var exercisesService: ExercisesService
     private var userExercisesService: UserExercisesService
     private var workSchedule: WorkSchedule?
     private let notificationManager = ExerciseNotificationManager.shared
+    private let calendar = Calendar.current
+    
+    // Tüm yaklaşan egzersizleri tutan private property
+    private var allUpcomingExercises: [(Exercise, Date)] = []
+    private var allUpcomingExercisesForTodayTarget: [(Exercise, Date)] = []
     
     init() {
         // Servisleri init sırasında başlat
@@ -51,9 +81,8 @@ final class DashboardViewModel: ObservableObject {
         // Günlük özet için gerçek data
         let exercises = exercisesService.exercises
         let selectedExercises = userExercisesService.selectedExercises
+        print("🔔 Seçili egzersizler:", selectedExercises)
         
-        print("📱 Tüm egzersizler:", exercises.map { "id: \($0.id), name: \($0.name)" })
-        print("✅ Seçili egzersizler:", selectedExercises.map { "exerciseId: \($0.exerciseId), interval: \($0.reminderInterval)" })
         
         // Tamamlanma durumunu şimdilik 0 olarak bırakıyoruz
         // TODO: Tamamlanma durumu için bir mekanizma eklenecek
@@ -68,32 +97,50 @@ final class DashboardViewModel: ObservableObject {
         // Yaklaşan egzersizler için gerçek data
         let now = Date()
         guard let schedule = workSchedule else {
-            print("⚠️ Work schedule bulunamadı")
             return
         }
         
         // Her egzersiz için gelecek zamanları al ve birleştir
-        var allUpcomingExercises: [(Exercise, Date)] = []
+        allUpcomingExercises = []
+        allUpcomingExercisesForTodayTarget = []
         
         for selectedExercise in selectedExercises {
             guard let exercise = exercises.first(where: { $0.id == selectedExercise.exerciseId }) else {
                 continue
             }
             
-            // Bildirimler için daha uzun bir süre al (örn: 1 hafta)
+            // Bildirimler için daha uzun bir Süre al (örn: 1 hafta)
             let nextTimes = selectedExercise.reminderInterval.nextOccurrences(from: now, workSchedule: schedule, limit: 50)
             let exerciseTimes = nextTimes.map { (exercise, $0) }
             allUpcomingExercises.append(contentsOf: exerciseTimes)
+
+            let nextTimesForTodayTarget = selectedExercise.reminderInterval.nextOccurrences(from: now, workSchedule: schedule, limit: 5000)
+            let exerciseTimesForTodayTarget = nextTimesForTodayTarget.map { (exercise, $0) }
+            allUpcomingExercisesForTodayTarget.append(contentsOf: exerciseTimesForTodayTarget)
         }
         
         // Tüm zamanları sırala
-        let sortedExercises = allUpcomingExercises
+        allUpcomingExercises = allUpcomingExercises
             .filter { $0.1 > now }
             .sorted { $0.1 < $1.1 }
         
-        // Dashboard için sadece ilk 5'ini göster
-        upcomingExercises = sortedExercises
+        // Bugünün egzersizlerini göster
+        let todayEnd = calendar.date(bySettingHour: 23, minute: 59, second: 59, of: now) ?? now
+        let todayExercises = allUpcomingExercises
+            .filter { calendar.isDate($0.1, inSameDayAs: now) }
             .prefix(5)
+        
+        // Eğer bugün için yeterli egzersiz yoksa, yarından itibaren olanları da ekle
+        var displayExercises = Array(todayExercises)
+        if displayExercises.count < 5 {
+            let futureExercises = allUpcomingExercises
+                .filter { $0.1 > todayEnd }
+                .prefix(5 - displayExercises.count)
+            displayExercises.append(contentsOf: futureExercises)
+        }
+        
+        // Dashboard için egzersizleri formatla
+        upcomingExercises = displayExercises
             .map { pair in
                 let dateFormatter = DateFormatter()
                 
@@ -117,7 +164,7 @@ final class DashboardViewModel: ObservableObject {
             }
             
         // TÜM egzersizler için bildirimleri planla
-        let allNotifications = sortedExercises.map { pair in
+        let allNotifications = allUpcomingExercises.map { pair in
             UpcomingExercise(
                 id: UUID().uuidString,
                 name: pair.0.name,
@@ -127,8 +174,7 @@ final class DashboardViewModel: ObservableObject {
                 iconName: pair.0.categories.first?.icon ?? "figure.walk"
             )
         }
-        
-        print("🔔 Bildirim planlanacak egzersizler:", allNotifications.map { "id: \($0.id), name: \($0.name), time: \($0.scheduledTime)" })
+        print("🔔 Toplam planlanacak bildirim sayısı:", allNotifications.count)
         notificationManager.rescheduleNotifications(exercises: allNotifications)
         
         // Haftalık istatistikler için gerçek data
@@ -136,8 +182,6 @@ final class DashboardViewModel: ObservableObject {
         weeklyAverage = Double(selectedExercises.count) / 7.0
         weeklyBest = completedExercises // Şimdilik tamamlanan sayısını kullanıyoruz
     }
-    
-    private let calendar = Calendar.current
     
     private func setupSubscriptions() {
         // Seçili egzersizler değiştiğinde dashboard'u güncelle

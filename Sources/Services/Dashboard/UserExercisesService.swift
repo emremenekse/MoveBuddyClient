@@ -9,22 +9,28 @@ final class UserExercisesService {
     // MARK: - Properties
     private let defaults = UserDefaults.standard
     private let selectedExercisesKey = "selectedExercises"
+    private let completedExercisesKey = "completedExercises"
     
     @Published private(set) var selectedExercises: [UserSelectedExercise] = []
+    @Published private(set) var completedExercises: [CompletedExercise] = []
     
-    // Değişiklikleri dinlemek için publisher
+    // Değişiklikleri dinlemek için publisher'lar
     var exercisesPublisher: AnyPublisher<[UserSelectedExercise], Never> {
         $selectedExercises.eraseToAnyPublisher()
+    }
+    
+    var completedExercisesPublisher: AnyPublisher<[CompletedExercise], Never> {
+        $completedExercises.eraseToAnyPublisher()
     }
     
     // MARK: - Initialization
     private init() {
         loadSelectedExercises()
+        loadCompletedExercises()
     }
     
     // MARK: - Public Methods
     func addExercise(_ exerciseId: String, reminderInterval: ReminderInterval) {
-        print("➕ Egzersiz ekleniyor:", exerciseId, "interval:", reminderInterval)
         let exercise = UserSelectedExercise(
             exerciseId: exerciseId,
             reminderInterval: reminderInterval
@@ -35,7 +41,6 @@ final class UserExercisesService {
     }
     
     func removeExercise(withId id: String) {
-        print("➖ Egzersiz siliniyor:", id)
         selectedExercises.removeAll { $0.exerciseId == id }
         saveSelectedExercises()
         
@@ -49,27 +54,43 @@ final class UserExercisesService {
         selectedExercises.contains { $0.exerciseId == exerciseId }
     }
     
+    func completeExercise(_ exerciseId: String) {
+        let completed = CompletedExercise(exerciseId: exerciseId)
+        completedExercises.append(completed)
+        saveCompletedExercises()
+    }
+    
     // MARK: - Private Methods
     private func loadSelectedExercises() {
-        print("📱 UserDefaults'tan egzersizler yükleniyor...")
         guard let data = defaults.data(forKey: selectedExercisesKey),
               let exercises = try? JSONDecoder().decode([UserSelectedExercise].self, from: data) else {
-            print("❌ UserDefaults'ta kayıtlı egzersiz bulunamadı veya decode edilemedi")
+            
             selectedExercises = []
             return
         }
         
         selectedExercises = exercises
-        print("✅ Yüklenen egzersizler:", exercises)
+        print(" Yüklenen egzersizler:", exercises.count)
     }
     
     private func saveSelectedExercises() {
         guard let data = try? JSONEncoder().encode(selectedExercises) else {
-            print("❌ Egzersizler encode edilemedi")
             return
         }
         defaults.set(data, forKey: selectedExercisesKey)
-        print("💾 Egzersizler kaydedildi:", selectedExercises)
-        print(defaults)
     }
-} 
+    
+    private func loadCompletedExercises() {
+        guard let data = defaults.data(forKey: completedExercisesKey),
+              let exercises = try? JSONDecoder().decode([CompletedExercise].self, from: data) else {
+            completedExercises = []
+            return
+        }
+        completedExercises = exercises
+    }
+    
+    private func saveCompletedExercises() {
+        guard let data = try? JSONEncoder().encode(completedExercises) else { return }
+        defaults.set(data, forKey: completedExercisesKey)
+    }
+}
