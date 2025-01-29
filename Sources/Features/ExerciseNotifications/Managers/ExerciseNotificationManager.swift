@@ -1,12 +1,14 @@
 import Foundation
 import UserNotifications
 
-final class ExerciseNotificationManager {
+final class ExerciseNotificationManager: NSObject, UNUserNotificationCenterDelegate {
     static let shared = ExerciseNotificationManager()
     private let service: ExerciseNotificationServiceProtocol
     
-    private init(service: ExerciseNotificationServiceProtocol = ExerciseNotificationService.shared) {
+    init(service: ExerciseNotificationServiceProtocol = ExerciseNotificationService.shared) {
         self.service = service
+        super.init()
+        UNUserNotificationCenter.current().delegate = self
         configureNotificationCategories()
     }
     
@@ -49,30 +51,48 @@ final class ExerciseNotificationManager {
     }
     
     // Bildirim yanıtlarını işle
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        handleNotificationResponse(response)
+        completionHandler()
+    }
+    
+    // Bildirim yanıtlarını işle
     func handleNotificationResponse(_ response: UNNotificationResponse) {
-        
         // UserInfo'dan exerciseId'yi al
         guard let exerciseId = response.notification.request.content.userInfo["exerciseId"] as? String else {
             return
         }
         
-        guard let action = ExerciseAction(rawValue: response.actionIdentifier) else {
-            return
+        // Aksiyon tipini kontrol et
+        let action: ExerciseAction
+        switch response.actionIdentifier {
+        case UNNotificationDefaultActionIdentifier: // Bildirime tıklandı
+            action = .complete
+        case UNNotificationDismissActionIdentifier: // Bildirim kapatıldı
+            action = .skip
+        default:
+            // Özel aksiyonlar (Tamamla/Atla butonları)
+            action = ExerciseAction(rawValue: response.actionIdentifier) ?? .skip
         }
         
+        // Service'e ilet
         Task {
             do {
                 try await service.handleNotificationResponse(exerciseId: exerciseId, action: action)
             } catch {
-                print("⚠️ Bildirim yanıtı işlenemedi: \(error.localizedDescription)")
+                print("⚠️ Bildirim yanıtı işlenemedi:", error.localizedDescription)
             }
         }
     }
     
     // Tüm bildirimleri iptal et
     func cancelAllNotifications() {
-        print("🔴 Tüm bildirimleri iptal et")
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        UNUserNotificationCenter.current().removeAllDeliveredNotifications()
     }
     
     // Belirli bir egzersizin bildirimlerini iptal et
@@ -86,7 +106,7 @@ final class ExerciseNotificationManager {
             // Önce tüm bildirimleri iptal et
             cancelAllNotifications()
             
-            // İlk 10 bildirimi planla (iOS limiti nedeniyle)
+            // İlk 30 bildirimi planla (iOS limiti nedeniyle)
             let limitedExercises = Array(exercises.prefix(30))
             print("🔔 Planlanan bildirim sayısı:", limitedExercises.count)
             

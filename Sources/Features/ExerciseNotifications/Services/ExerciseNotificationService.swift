@@ -22,11 +22,9 @@ final class ExerciseNotificationService: ExerciseNotificationServiceProtocol {
         let center = UNUserNotificationCenter.current()
         let settings = await center.notificationSettings()
         
-        print("🔔 Bildirim izni durumu:", settings.authorizationStatus.rawValue)
         
         if settings.authorizationStatus != .authorized {
             let granted = try await center.requestAuthorization(options: [.alert, .sound])
-            print("🔔 Bildirim izni verildi:", granted)
         }
     }
     
@@ -53,25 +51,101 @@ final class ExerciseNotificationService: ExerciseNotificationServiceProtocol {
         """
         
         content.sound = .default
-        content.categoryIdentifier = "EXERCISE_ACTIONS"
         content.threadIdentifier = "exercise_notifications"
-        content.userInfo = ["exerciseId": exercise.exerciseId] // exerciseId'yi userInfo'ye ekle
+        content.userInfo = [
+            "exerciseId": exercise.exerciseId,
+            "scheduledTime": exercise.scheduledTime.timeIntervalSince1970
+        ]
         
+        // Bildirim aksiyonlarını ekle
+        let completeAction = UNNotificationAction(
+            identifier: ExerciseAction.complete.rawValue,
+            title: "Tamamla",
+            options: .foreground
+        )
+        
+        let skipAction = UNNotificationAction(
+            identifier: ExerciseAction.skip.rawValue,
+            title: "Atla",
+            options: .foreground
+        )
+        
+        let category = UNNotificationCategory(
+            identifier: "EXERCISE_ACTIONS",
+            actions: [completeAction, skipAction],
+            intentIdentifiers: [],
+            options: [.customDismissAction] // Bildirim kapatıldığında tetiklenecek
+        )
+        
+        // Kategoriyi kaydet
+        notificationCenter.setNotificationCategories([category])
+        content.categoryIdentifier = "EXERCISE_ACTIONS"
+        
+        // Bildirimin zamanını ayarla
         let trigger = UNCalendarNotificationTrigger(
             dateMatching: Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], 
             from: exercise.scheduledTime),
             repeats: false
         )
         
+        // Bildirim isteğini oluştur
         let request = UNNotificationRequest(
             identifier: exercise.id,
             content: content,
             trigger: trigger
         )
         
-        print("🔔 Bildirim planlanıyor - \(exercise.name) için \(exercise.scheduledTime)")
         try await notificationCenter.add(request)
-        print("✅ Bildirim planlandı")
+        
+        // Her 30 saniyede bir tüm bildirimleri kontrol et
+        startNotificationCleanupTimer()
+    }
+    
+    private static var cleanupTimer: Task<Void, Error>?
+    
+    private func startNotificationCleanupTimer() {
+        // Eğer timer zaten çalışıyorsa yeni timer oluşturma
+        guard Self.cleanupTimer == nil else { return }
+        
+        Self.cleanupTimer = Task {
+            while !Task.isCancelled {
+                // Her 30 saniyede bir kontrol et
+                try await Task.sleep(nanoseconds: 30 * NSEC_PER_SEC)
+                
+                let notifications = await notificationCenter.deliveredNotifications()
+                print("📬 Aktif bildirim sayısı: \(notifications.count)")
+                
+                var expiredNotifications: [String] = []
+                
+                for notification in notifications {
+                    guard let scheduledTime = notification.request.content.userInfo["scheduledTime"] as? TimeInterval else {
+                        continue
+                    }
+                    
+                    let notificationDate = Date(timeIntervalSince1970: scheduledTime)
+                    let timeSinceNotification = Date().timeIntervalSince(notificationDate)
+                    
+                    // 2 dakikadan eski bildirimleri topla
+                    if timeSinceNotification >= 2 * 60 {
+                        expiredNotifications.append(notification.request.identifier)
+                    }
+                }
+                
+                // Eğer süresi geçmiş bildirim varsa
+                if !expiredNotifications.isEmpty {
+                    print("🗑️ \(expiredNotifications.count) adet bildirimin süresi doldu, kaldırılıyor")
+                    notificationCenter.removeDeliveredNotifications(withIdentifiers: expiredNotifications)
+                    notificationCenter.removePendingNotificationRequests(withIdentifiers: expiredNotifications)
+                    
+                    // Egzersiz listesini güncelle
+                    // if !expiredNotifications.isEmpty {
+                    //     await MainActor.run {
+                    //         UserExercisesService.shared.skipExercise()
+                    //     }
+                    // }
+                }
+            }
+        }
     }
     
     // Egzersiz tipine göre emoji seç
@@ -92,6 +166,20 @@ final class ExerciseNotificationService: ExerciseNotificationServiceProtocol {
     }
     
     func handleNotificationResponse(exerciseId: String, action: ExerciseAction) async throws {
+        // Bildirimi kaldır
+        let notifications = await notificationCenter.deliveredNotifications()
+        let notificationId = notifications.first { notification in
+            guard let notificationExerciseId = notification.request.content.userInfo["exerciseId"] as? String else {
+                return false
+            }
+            return notificationExerciseId == exerciseId
+        }?.request.identifier
+        
+        if let id = notificationId {
+            notificationCenter.removeDeliveredNotifications(withIdentifiers: [id])
+            notificationCenter.removePendingNotificationRequests(withIdentifiers: [id])
+        }
+        
         switch action {
         case .complete:
             print("✅ Egzersiz tamamlandı: \(exerciseId)")
@@ -99,6 +187,7 @@ final class ExerciseNotificationService: ExerciseNotificationServiceProtocol {
                 UserExercisesService.shared.completeExercise(exerciseId)
             }
         case .skip:
+            print("⏭️ Egzersiz atlandı: \(exerciseId)")
             await MainActor.run {
                 UserExercisesService.shared.skipExercise()
             }
