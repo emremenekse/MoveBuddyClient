@@ -95,7 +95,14 @@ final class UserExercisesService {
             }
         }
         
-        // Delegate'e haber ver
+        Task {
+            await MainActor.run {
+                delegate?.exerciseCompleted()
+            }
+        }
+    }
+
+    func skipExercise() {
         Task {
             await MainActor.run {
                 delegate?.exerciseCompleted()
@@ -147,6 +154,7 @@ final class UserExercisesService {
         let data: [String: Any] = [
             "deviceId": deviceId,
             "exerciseId": completed.exerciseId,
+            "notificationId": completed.id,
             "completedAt": completed.completedAt,
             "duration": exercise.durationSeconds ?? 0,
             "name": exercise.name,
@@ -155,8 +163,11 @@ final class UserExercisesService {
         ]
         
         do {
-            try await db.collection("completedExercises").document(completed.id).setData(data)
+            // Her cihaz için bir koleksiyon oluştur ve altına completions ekle
+            let deviceRef = db.collection("completedExercises").document(deviceId).collection("completions")
+            try await deviceRef.document(completed.id).setData(data)
         } catch {
+            print("❌ Firebase kayıt hatası:", error.localizedDescription)
         }
     }
 }

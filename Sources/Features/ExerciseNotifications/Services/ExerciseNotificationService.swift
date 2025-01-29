@@ -99,8 +99,9 @@ final class ExerciseNotificationService: ExerciseNotificationServiceProtocol {
                 UserExercisesService.shared.completeExercise(exerciseId)
             }
         case .skip:
-            print("⏭️ Egzersiz atlandı: \(exerciseId)")
-            // TODO: Skip işlemi için ayrı bir mantık eklenebilir
+            await MainActor.run {
+                UserExercisesService.shared.skipExercise()
+            }
         }
     }
     
