@@ -1,5 +1,16 @@
 import Foundation
 import Combine
+import FirebaseFirestore
+
+protocol UserExercisesServiceDelegate: AnyObject {
+    func userExercisesDidChange()
+    func exerciseCompleted()
+}
+
+// Opsiyonel metod için extension
+extension UserExercisesServiceDelegate {
+    func exerciseCompleted() {}
+}
 
 @MainActor
 final class UserExercisesService {
@@ -10,6 +21,11 @@ final class UserExercisesService {
     private let defaults = UserDefaults.standard
     private let selectedExercisesKey = "selectedExercises"
     private let completedExercisesKey = "completedExercises"
+    private let db = Firestore.firestore()
+    private let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+    private let exercisesService: ExercisesService
+    
+    weak var delegate: UserExercisesServiceDelegate?
     
     @Published private(set) var selectedExercises: [UserSelectedExercise] = []
     @Published private(set) var completedExercises: [CompletedExercise] = []
@@ -24,7 +40,8 @@ final class UserExercisesService {
     }
     
     // MARK: - Initialization
-    private init() {
+    private init(exercisesService: ExercisesService = .shared) {
+        self.exercisesService = exercisesService
         loadSelectedExercises()
         loadCompletedExercises()
     }
@@ -50,6 +67,17 @@ final class UserExercisesService {
         }
     }
     
+    func removeExercisesForDay(_ weekDay: WeekDay) {
+        // Bildirimleri yeniden planla
+        Task {
+            // Delegate'e haber ver
+            await MainActor.run {
+                print("Egzersizler yeniden planlanıyorAAA")
+                delegate?.userExercisesDidChange()
+            }
+        }
+    }
+    
     func isExerciseSelected(_ exerciseId: String) -> Bool {
         selectedExercises.contains { $0.exerciseId == exerciseId }
     }
@@ -58,6 +86,21 @@ final class UserExercisesService {
         let completed = CompletedExercise(exerciseId: exerciseId)
         completedExercises.append(completed)
         saveCompletedExercises()
+        
+        // Firebase'e kaydet
+        Task {
+            do {
+                await saveCompletedExerciseToFirestore(completed)
+            } catch {
+            }
+        }
+        
+        // Delegate'e haber ver
+        Task {
+            await MainActor.run {
+                delegate?.exerciseCompleted()
+            }
+        }
     }
     
     // MARK: - Private Methods
@@ -92,5 +135,28 @@ final class UserExercisesService {
     private func saveCompletedExercises() {
         guard let data = try? JSONEncoder().encode(completedExercises) else { return }
         defaults.set(data, forKey: completedExercisesKey)
+    }
+    
+    private func saveCompletedExerciseToFirestore(_ completed: CompletedExercise) async {
+        // Egzersiz bilgilerini al
+        guard let exercise = exercisesService.exercises.first(where: { $0.id == completed.exerciseId }) else {
+            print("❌ Egzersiz bulunamadı:", completed.exerciseId)
+            return
+        }
+        
+        let data: [String: Any] = [
+            "deviceId": deviceId,
+            "exerciseId": completed.exerciseId,
+            "completedAt": completed.completedAt,
+            "duration": exercise.durationSeconds ?? 0,
+            "name": exercise.name,
+            "categories": exercise.categories.map { $0.rawValue },
+            "difficulty": exercise.difficulty?.rawValue ?? "unknown"
+        ]
+        
+        do {
+            try await db.collection("completedExercises").document(completed.id).setData(data)
+        } catch {
+        }
     }
 }

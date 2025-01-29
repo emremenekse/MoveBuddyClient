@@ -20,4 +20,4 @@ final class FirebaseService {
         isConfigured = true
         print("✅ Firebase configuration completed")
     }
-} 
+}

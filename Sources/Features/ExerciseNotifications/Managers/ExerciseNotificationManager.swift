@@ -36,6 +36,7 @@ final class ExerciseNotificationManager {
     
     // Birden fazla egzersiz için bildirimleri planla
     func scheduleExerciseNotifications(exercises: [UpcomingExercise]) {
+        
         Task {
             for exercise in exercises {
                 do {
@@ -49,7 +50,11 @@ final class ExerciseNotificationManager {
     
     // Bildirim yanıtlarını işle
     func handleNotificationResponse(_ response: UNNotificationResponse) {
-        let exerciseId = response.notification.request.identifier
+        
+        // UserInfo'dan exerciseId'yi al
+        guard let exerciseId = response.notification.request.content.userInfo["exerciseId"] as? String else {
+            return
+        }
         
         guard let action = ExerciseAction(rawValue: response.actionIdentifier) else {
             return
@@ -66,6 +71,7 @@ final class ExerciseNotificationManager {
     
     // Tüm bildirimleri iptal et
     func cancelAllNotifications() {
+        print("🔴 Tüm bildirimleri iptal et")
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
     }
     
@@ -80,12 +86,15 @@ final class ExerciseNotificationManager {
             // Önce tüm bildirimleri iptal et
             cancelAllNotifications()
             
-            // Sonra yeni bildirimleri planla
-            for exercise in exercises {
+            // İlk 10 bildirimi planla (iOS limiti nedeniyle)
+            let limitedExercises = Array(exercises.prefix(30))
+            print("🔔 Planlanan bildirim sayısı:", limitedExercises.count)
+            
+            for exercise in limitedExercises {
                 do {
                     try await service.scheduleNotification(for: exercise)
                 } catch {
-                    print("⚠️ Bildirim planlanamadı: \(error.localizedDescription)")
+                    print("⚠️ Bildirim planlanamadı:", error.localizedDescription)
                 }
             }
         }

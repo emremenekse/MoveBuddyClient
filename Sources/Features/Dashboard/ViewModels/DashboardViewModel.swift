@@ -2,7 +2,7 @@ import Foundation
 import Combine
 
 @MainActor
-final class DashboardViewModel: ObservableObject {
+final class DashboardViewModel: ObservableObject, UserExercisesServiceDelegate {
     @Published var userName: String = ""
     @Published var completedExercises: Int = 0
     @Published var remainingExercises: Int = 0
@@ -29,11 +29,14 @@ final class DashboardViewModel: ObservableObject {
         let todayCompleted = userExercisesService.completedExercises
             .filter { Calendar.current.isDateInToday($0.completedAt) }
         
+        
+        
         return todayCompleted.reduce(0) { total, completed in
             if let exercise = exercisesService.exercises.first(where: { $0.id == completed.exerciseId }) {
                 return total + (exercise.durationSeconds ?? 0) / 60
+            } else {
+                return total
             }
-            return total
         }
     }
     
@@ -49,20 +52,21 @@ final class DashboardViewModel: ObservableObject {
     private var allUpcomingExercises: [(Exercise, Date)] = []
     private var allUpcomingExercisesForTodayTarget: [(Exercise, Date)] = []
     
-    init() {
-        // Servisleri init sırasında başlat
-        initialSetupService = .shared
-        exercisesService = .shared
-        userExercisesService = .shared
+    init(initialSetupService: InitialSetupService = .shared,
+         exercisesService: ExercisesService = .shared,
+         userExercisesService: UserExercisesService = .shared) {
+        self.initialSetupService = initialSetupService
+        self.exercisesService = exercisesService
+        self.userExercisesService = userExercisesService
         
-        // Verileri yükle
+        // Delegate'i ayarla
+        userExercisesService.delegate = self
+        
+        setupSubscriptions()
         Task {
             await loadUserInfo()
             await loadExercises()
         }
-        
-        // Egzersiz değişikliklerini dinle
-        setupSubscriptions()
     }
     
     func refreshData() async {
@@ -72,38 +76,44 @@ final class DashboardViewModel: ObservableObject {
     private func loadUserInfo() async {
         guard let userInfo = try? await initialSetupService.getUserInfo() else { return }
         userName = userInfo.name
-        workSchedule = userInfo.workSchedule
     }
     
     private func loadExercises() async {
+        
+        // Önce workSchedule'ı InitialSetupService'den al
+        guard let userInfo = try? await initialSetupService.getUserInfo() else {
+            print("❌ Kullanıcı bilgileri alınamadı")
+            return
+        }
+        let schedule = userInfo.workSchedule
+        
+        // Egzersizleri yükle ve bekle
         await exercisesService.fetchExercises()
         
         // Günlük özet için gerçek data
         let exercises = exercisesService.exercises
         let selectedExercises = userExercisesService.selectedExercises
-        print("🔔 Seçili egzersizler:", selectedExercises)
         
-        
-        // Tamamlanma durumunu şimdilik 0 olarak bırakıyoruz
-        // TODO: Tamamlanma durumu için bir mekanizma eklenecek
-        completedExercises = 0
+        // Tamamlanma durumunu güncelle
+        completedExercises = completedToday
         remainingExercises = selectedExercises.count
         
+        // Toplam dakikayı güncelle
+        totalMinutes = completedMinutesToday
+        
         // Seçili egzersizlerin toplam süresi
-        totalMinutes = selectedExercises.compactMap { selectedExercise in
-            exercises.first { $0.id == selectedExercise.exerciseId }?.durationSeconds
-        }.reduce(0) { $0 + ($1 / 60) }
+        // totalMinutes = selectedExercises.compactMap { selectedExercise in
+        //     exercises.first { $0.id == selectedExercise.exerciseId }?.durationSeconds
+        // }.reduce(0) { $0 + ($1 / 60) }
         
-        // Yaklaşan egzersizler için gerçek data
+        // Şu anki zamanı al
         let now = Date()
-        guard let schedule = workSchedule else {
-            return
-        }
         
-        // Her egzersiz için gelecek zamanları al ve birleştir
-        allUpcomingExercises = []
-        allUpcomingExercisesForTodayTarget = []
+        // Tüm yaklaşan egzersizleri temizle
+        allUpcomingExercises.removeAll()
+        allUpcomingExercisesForTodayTarget.removeAll()
         
+        // Her seçili egzersiz için yaklaşan zamanları hesapla
         for selectedExercise in selectedExercises {
             guard let exercise = exercises.first(where: { $0.id == selectedExercise.exerciseId }) else {
                 continue
@@ -113,7 +123,7 @@ final class DashboardViewModel: ObservableObject {
             let nextTimes = selectedExercise.reminderInterval.nextOccurrences(from: now, workSchedule: schedule, limit: 50)
             let exerciseTimes = nextTimes.map { (exercise, $0) }
             allUpcomingExercises.append(contentsOf: exerciseTimes)
-
+            
             let nextTimesForTodayTarget = selectedExercise.reminderInterval.nextOccurrences(from: now, workSchedule: schedule, limit: 5000)
             let exerciseTimesForTodayTarget = nextTimesForTodayTarget.map { (exercise, $0) }
             allUpcomingExercisesForTodayTarget.append(contentsOf: exerciseTimesForTodayTarget)
@@ -154,7 +164,8 @@ final class DashboardViewModel: ObservableObject {
                 }
                 
                 return UpcomingExercise(
-                    id: UUID().uuidString,
+                    id: UUID().uuidString, // Bildirim/gösterim için unique ID
+                    exerciseId: pair.0.id, // Egzersizin kendi ID'si
                     name: pair.0.name,
                     scheduledTime: pair.1,
                     time: dateFormatter.string(from: pair.1),
@@ -162,11 +173,12 @@ final class DashboardViewModel: ObservableObject {
                     iconName: pair.0.categories.first?.icon ?? "figure.walk"
                 )
             }
-            
+        
         // TÜM egzersizler için bildirimleri planla
         let allNotifications = allUpcomingExercises.map { pair in
             UpcomingExercise(
-                id: UUID().uuidString,
+                id: UUID().uuidString, // Bildirim/gösterim için unique ID
+                exerciseId: pair.0.id, // Egzersizin kendi ID'si
                 name: pair.0.name,
                 scheduledTime: pair.1,
                 time: "", // Bildirimler için time string'e gerek yok
@@ -174,7 +186,6 @@ final class DashboardViewModel: ObservableObject {
                 iconName: pair.0.categories.first?.icon ?? "figure.walk"
             )
         }
-        print("🔔 Toplam planlanacak bildirim sayısı:", allNotifications.count)
         notificationManager.rescheduleNotifications(exercises: allNotifications)
         
         // Haftalık istatistikler için gerçek data
@@ -193,11 +204,25 @@ final class DashboardViewModel: ObservableObject {
             }
             .store(in: &cancellables)
     }
+    
+    // MARK: - UserExercisesServiceDelegate
+    func userExercisesDidChange() {
+        Task {
+            await loadExercises()
+        }
+    }
+    
+    func exerciseCompleted() {
+        Task {
+            await loadExercises()
+        }
+    }
 }
 
 // MARK: - Models
 struct UpcomingExercise: Identifiable, Codable {
-    let id: String
+    let id: String // Bildirim/gösterim için unique ID
+    let exerciseId: String // Egzersizin kendi ID'si
     let name: String
     let scheduledTime: Date
     let time: String
@@ -205,6 +230,6 @@ struct UpcomingExercise: Identifiable, Codable {
     let iconName: String
     
     enum CodingKeys: String, CodingKey {
-        case id, name, scheduledTime, time, duration, iconName
+        case id, exerciseId, name, scheduledTime, time, duration, iconName
     }
 }

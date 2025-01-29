@@ -1,13 +1,13 @@
 import Foundation
 
 struct CompletedExercise: Codable, Identifiable {
-    let id: String
-    let exerciseId: String
+    let id: String // Tamamlama kaydının unique ID'si
+    let exerciseId: String // Hangi egzersizin tamamlandığı
     let completedAt: Date
     
-    init(id: String = UUID().uuidString, exerciseId: String, completedAt: Date = Date()) {
-        self.id = id
-        self.exerciseId = exerciseId
+    init(exerciseId: String, completedAt: Date = Date()) {
+        self.id = "\(exerciseId)_\(Int(completedAt.timeIntervalSince1970))" // exerciseId_timestamp formatında unique ID
+        self.exerciseId = exerciseId // Egzersizin ID'si
         self.completedAt = completedAt
     }
 }

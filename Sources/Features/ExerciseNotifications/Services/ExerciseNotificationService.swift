@@ -18,7 +18,22 @@ final class ExerciseNotificationService: ExerciseNotificationServiceProtocol {
     
     private init() {}
     
+    private func requestNotificationPermission() async throws {
+        let center = UNUserNotificationCenter.current()
+        let settings = await center.notificationSettings()
+        
+        print("🔔 Bildirim izni durumu:", settings.authorizationStatus.rawValue)
+        
+        if settings.authorizationStatus != .authorized {
+            let granted = try await center.requestAuthorization(options: [.alert, .sound])
+            print("🔔 Bildirim izni verildi:", granted)
+        }
+    }
+    
     func scheduleNotification(for exercise: UpcomingExercise) async throws {
+        // Önce izin kontrolü yap
+        try await requestNotificationPermission()
+        
         let content = UNMutableNotificationContent()
         
         // Emoji ve ikon kombinasyonu ile başlık
@@ -40,6 +55,7 @@ final class ExerciseNotificationService: ExerciseNotificationServiceProtocol {
         content.sound = .default
         content.categoryIdentifier = "EXERCISE_ACTIONS"
         content.threadIdentifier = "exercise_notifications"
+        content.userInfo = ["exerciseId": exercise.exerciseId] // exerciseId'yi userInfo'ye ekle
         
         let trigger = UNCalendarNotificationTrigger(
             dateMatching: Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], 
@@ -53,7 +69,9 @@ final class ExerciseNotificationService: ExerciseNotificationServiceProtocol {
             trigger: trigger
         )
         
+        print("🔔 Bildirim planlanıyor - \(exercise.name) için \(exercise.scheduledTime)")
         try await notificationCenter.add(request)
+        print("✅ Bildirim planlandı")
     }
     
     // Egzersiz tipine göre emoji seç

@@ -15,6 +15,7 @@ final class ProfileViewModel: ObservableObject {
     private var originalUserInfo: InitialUserInfo?
     private var cancellables = Set<AnyCancellable>()
     private let initialSetupService: InitialSetupService
+    private let userExercisesService: UserExercisesService
     
     // MARK: - Computed Properties
     var hasChanges: Bool {
@@ -29,6 +30,7 @@ final class ProfileViewModel: ObservableObject {
     // MARK: - Initialization
     nonisolated init(initialSetupService: InitialSetupService = .shared) {
         self.initialSetupService = initialSetupService
+        self.userExercisesService = .shared
         
         Task { @MainActor in
             await self.loadUserInfo()
@@ -51,6 +53,9 @@ final class ProfileViewModel: ObservableObject {
             workspaceTypes = userInfo.workspaceType
             exercisePreferences = userInfo.exercisePreferences
             workSchedule = userInfo.workSchedule
+            
+            // Değişiklikler kaydedildiğinde delegate'i tetikle
+            userExercisesService.delegate?.userExercisesDidChange()
             
             showError = false
             errorMessage = ""
