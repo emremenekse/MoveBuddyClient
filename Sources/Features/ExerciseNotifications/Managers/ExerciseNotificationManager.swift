@@ -89,6 +89,15 @@ final class ExerciseNotificationManager: NSObject, UNUserNotificationCenterDeleg
         }
     }
     
+    // MARK: - UNUserNotificationCenterDelegate
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, 
+                              willPresent notification: UNNotification,
+                              withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        // Uygulama açıkken bildirimleri göster
+        completionHandler([.banner, .sound, .badge])
+    }
+    
     // Tüm bildirimleri iptal et
     func cancelAllNotifications() {
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
@@ -107,8 +116,9 @@ final class ExerciseNotificationManager: NSObject, UNUserNotificationCenterDeleg
             cancelAllNotifications()
             
             // İlk 30 bildirimi planla (iOS limiti nedeniyle)
-            let limitedExercises = Array(exercises.prefix(30))
+            let limitedExercises = Array(exercises.prefix(40))
             print("🔔 Planlanan bildirim sayısı:", limitedExercises.count)
+            writeExercisesToFile(limitedExercises)
             
             for exercise in limitedExercises {
                 do {
@@ -117,6 +127,28 @@ final class ExerciseNotificationManager: NSObject, UNUserNotificationCenterDeleg
                     print("⚠️ Bildirim planlanamadı:", error.localizedDescription)
                 }
             }
+        }
+    }
+    
+    private func writeExercisesToFile(_ exercises: [UpcomingExercise]) {
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let fileURL = documentsPath.appendingPathComponent("planned_exercises.txt")
+        
+        print("📝 Dosya kaydediliyor:", fileURL.path)
+        
+        do {
+            // Eğer dosya yoksa oluştur
+            if !FileManager.default.fileExists(atPath: fileURL.path) {
+                FileManager.default.createFile(atPath: fileURL.path, contents: nil)
+            }
+            
+            // Convert exercises to string representation
+            let exerciseStrings = exercises.map { "Exercise: \($0)" }.joined(separator: "\n")
+            // Write to file, this will overwrite existing content
+            try exerciseStrings.write(to: fileURL, atomically: true, encoding: .utf8)
+            print("✅ Dosya başarıyla kaydedildi")
+        } catch {
+            print("⚠️ Error writing to file:", error)
         }
     }
 }
