@@ -10,6 +10,12 @@ struct ProfileView: View {
                 // MARK: - Kişisel Bilgiler
                 Section("Kişisel Bilgiler") {
                     TextField("Ad", text: $viewModel.name)
+                    HStack {
+                        Text("Takma Ad")
+                        Spacer()
+                        Text(viewModel.nickname)
+                            .foregroundColor(.gray)
+                    }
                 }
                 
                 // MARK: - Çalışma Alanı

@@ -116,7 +116,7 @@ final class ExerciseNotificationManager: NSObject, UNUserNotificationCenterDeleg
             cancelAllNotifications()
             
             // İlk 30 bildirimi planla (iOS limiti nedeniyle)
-            let limitedExercises = Array(exercises.prefix(40))
+            let limitedExercises = Array(exercises.prefix(30))
             print("🔔 Planlanan bildirim sayısı:", limitedExercises.count)
             writeExercisesToFile(limitedExercises)
             

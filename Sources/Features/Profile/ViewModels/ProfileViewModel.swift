@@ -5,6 +5,7 @@ import Combine
 final class ProfileViewModel: ObservableObject {
     // MARK: - Published Properties
     @Published var name: String = ""
+    @Published var nickname: String = ""
     @Published var workspaceTypes: Set<WorkspaceType> = []
     @Published var exercisePreferences: Set<ExerciseType> = []
     @Published var workSchedule = WorkSchedule(workDays: [:])
@@ -16,6 +17,7 @@ final class ProfileViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private let initialSetupService: InitialSetupService
     private let userExercisesService: UserExercisesService
+    private let nicknameKey = "user_nickname"
     
     // MARK: - Computed Properties
     var hasChanges: Bool {
@@ -34,6 +36,19 @@ final class ProfileViewModel: ObservableObject {
         
         Task { @MainActor in
             await self.loadUserInfo()
+            await self.loadOrGenerateNickname()
+        }
+    }
+    
+    private func loadOrGenerateNickname() async {
+        // UserDefaults'tan nickname'i yükle
+        if let savedNickname = UserDefaults.standard.string(forKey: nicknameKey) {
+            self.nickname = savedNickname
+        } else {
+            // Yeni nickname oluştur ve kaydet
+            let newNickname = NicknameGenerator.shared.generateNickname()
+            self.nickname = newNickname
+            UserDefaults.standard.set(newNickname, forKey: nicknameKey)
         }
     }
     

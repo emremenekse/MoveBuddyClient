@@ -187,11 +187,6 @@ final class DashboardViewModel: ObservableObject, UserExercisesServiceDelegate {
             )
         }
         notificationManager.rescheduleNotifications(exercises: allNotifications)
-        
-        // Haftalık istatistikler için gerçek data
-        weeklyTotal = selectedExercises.count
-        weeklyAverage = Double(selectedExercises.count) / 7.0
-        weeklyBest = completedExercises // Şimdilik tamamlanan sayısını kullanıyoruz
     }
     
     private func setupSubscriptions() {

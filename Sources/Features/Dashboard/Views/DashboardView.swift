@@ -13,9 +13,6 @@ struct DashboardView: View {
                     
                     // Yaklaşan Egzersizler
                     UpcomingExercisesCard(viewModel: viewModel)
-                    
-                    // İstatistik Özeti
-                    StatisticsSummaryCard(viewModel: viewModel)
                 }
                 .padding()
             }
@@ -112,45 +109,7 @@ private struct UpcomingExercisesCard: View {
     }
 }
 
-private struct StatisticsSummaryCard: View {
-    @ObservedObject var viewModel: DashboardViewModel
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Haftalık İstatistikler")
-                .font(.headline)
-            
-            HStack(spacing: 24) {
-                StatView(
-                    title: "Toplam",
-                    value: "\(viewModel.weeklyTotal)",
-                    subtitle: "egzersiz",
-                    icon: "sum",
-                    color: .purple
-                )
-                
-                StatView(
-                    title: "Ortalama",
-                    value: "\(viewModel.weeklyAverage)",
-                    subtitle: "günlük",
-                    icon: "chart.bar.fill",
-                    color: .blue
-                )
-                
-                StatView(
-                    title: "En İyi",
-                    value: "\(viewModel.weeklyBest)",
-                    subtitle: "egzersiz",
-                    icon: "star.fill",
-                    color: .yellow
-                )
-            }
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
-    }
-}
+
 
 private struct StatView: View {
     let title: String

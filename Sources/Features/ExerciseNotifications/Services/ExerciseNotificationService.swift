@@ -29,6 +29,7 @@ final class ExerciseNotificationService: ExerciseNotificationServiceProtocol {
     }
     
     func scheduleNotification(for exercise: UpcomingExercise) async throws {
+        print("Scheduling notification for: \(exercise)")
         // Önce izin kontrolü yap
         try await requestNotificationPermission()
         
