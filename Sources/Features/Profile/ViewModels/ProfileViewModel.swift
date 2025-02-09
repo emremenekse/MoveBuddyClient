@@ -20,6 +20,15 @@ final class ProfileViewModel: ObservableObject {
     private let nicknameKey = "user_nickname"
     
     // MARK: - Computed Properties
+    var displayNickname: String {
+        // Son _ karakterinden sonraki kısmı sil
+        let components = nickname.components(separatedBy: "_")
+        if components.count >= 2 {
+            return components[0...1].joined(separator: "_")
+        }
+        return nickname
+    }
+    
     var hasChanges: Bool {
         guard let originalUserInfo = originalUserInfo else { return false }
         
@@ -41,21 +50,52 @@ final class ProfileViewModel: ObservableObject {
     }
     
     private func loadOrGenerateNickname() async {
-        // UserDefaults'tan nickname'i yükle
-        if let savedNickname = UserDefaults.standard.string(forKey: nicknameKey) {
-            self.nickname = savedNickname
-        } else {
-            // Yeni nickname oluştur ve kaydet
-            let newNickname = NicknameGenerator.shared.generateNickname()
-            self.nickname = newNickname
-            UserDefaults.standard.set(newNickname, forKey: nicknameKey)
+        do {
+            // Önce KeyChain'den userId'yi al
+            if let userId = try? KeychainManager.shared.getUserId(),
+               // Firestore'dan kullanıcı bilgilerini kontrol et
+               let userData = try? await UserService.shared.getUserData(userId: userId) {
+                // Firestore'da kayıtlı nickname varsa onu kullan
+                self.nickname = userData.nickname
+                // UserDefaults'a da kaydet
+                UserDefaults.standard.set(userData.nickname, forKey: nicknameKey)
+                return
+            }
+            
+            // Eğer buraya geldiysek ya userId yok ya da Firestore'da kayıt yok
+            // UserDefaults'tan nickname'i kontrol et
+            if let savedNickname = UserDefaults.standard.string(forKey: nicknameKey) {
+                self.nickname = savedNickname
+                
+                // Eğer userId varsa, Firestore'a da kaydet
+                if let userId = try? KeychainManager.shared.getUserId() {
+                    try? await UserService.shared.saveUserData(userId: userId, nickname: savedNickname)
+                }
+            } else {
+                // Yeni nickname oluştur
+                let newNickname = NicknameGenerator.shared.generateNickname()
+                self.nickname = newNickname
+                UserDefaults.standard.set(newNickname, forKey: nicknameKey)
+                
+                // Eğer userId varsa, Firestore'a da kaydet
+                if let userId = try? KeychainManager.shared.getUserId() {
+                    try? await UserService.shared.saveUserData(userId: userId, nickname: newNickname)
+                }
+            }
+        } catch {
+            print("Nickname yüklenirken hata: \(error)")
         }
     }
     
     // MARK: - Public Methods
     func saveChanges() async {
         do {
+            guard let userId = try? KeychainManager.shared.getUserId() else {
+                throw ProfileError.userIdNotFound
+            }
+            
             let userInfo = InitialUserInfo(
+                userId: userId,
                 name: name,
                 workspaceType: workspaceTypes,
                 exercisePreferences: exercisePreferences,

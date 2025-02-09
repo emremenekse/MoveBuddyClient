@@ -22,7 +22,7 @@ final class UserExercisesService {
     private let selectedExercisesKey = "selectedExercises"
     private let completedExercisesKey = "completedExercises"
     private let db = Firestore.firestore()
-    private let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+    // Artık deviceId yerine userId kullanıyoruz
     private let exercisesService: ExercisesService
     
     weak var delegate: UserExercisesServiceDelegate?
@@ -89,10 +89,7 @@ final class UserExercisesService {
         
         // Firebase'e kaydet
         Task {
-            do {
-                await saveCompletedExerciseToFirestore(completed)
-            } catch {
-            }
+            await saveCompletedExerciseToFirestore(completed)
         }
         
         Task {
@@ -151,8 +148,17 @@ final class UserExercisesService {
             return
         }
         
+        guard let userId = try? KeychainManager.shared.getUserId() else {
+            print("❌ UserId bulunamadı")
+            return
+        }
+        
+        // UserService'den nickname'i al
+        let userData = try? await UserService.shared.getUserData(userId: userId)
+        
         let data: [String: Any] = [
-            "deviceId": deviceId,
+            "userId": userId,
+            "nickname": userData?.nickname ?? "",
             "exerciseId": completed.exerciseId,
             "notificationId": completed.id,
             "completedAt": completed.completedAt,
@@ -163,9 +169,9 @@ final class UserExercisesService {
         ]
         
         do {
-            // Her cihaz için bir koleksiyon oluştur ve altına completions ekle
-            let deviceRef = db.collection("completedExercises").document(deviceId).collection("completions")
-            try await deviceRef.document(completed.id).setData(data)
+            // Her kullanıcı için bir koleksiyon oluştur ve altına completions ekle
+            let userRef = db.collection("completedExercises").document(userId).collection("completions")
+            try await userRef.document(completed.id).setData(data)
         } catch {
             print("❌ Firebase kayıt hatası:", error.localizedDescription)
         }

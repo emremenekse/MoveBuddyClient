@@ -1,6 +1,7 @@
 import Foundation
 
 struct InitialUserInfo: Codable {
+    let userId: String
     let name: String
     let workspaceType: Set<WorkspaceType>
     let exercisePreferences: Set<ExerciseType>

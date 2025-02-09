@@ -13,7 +13,7 @@ struct ProfileView: View {
                     HStack {
                         Text("Takma Ad")
                         Spacer()
-                        Text(viewModel.nickname)
+                        Text(viewModel.displayNickname)
                             .foregroundColor(.gray)
                     }
                 }

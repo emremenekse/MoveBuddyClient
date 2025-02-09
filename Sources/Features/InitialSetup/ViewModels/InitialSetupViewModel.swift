@@ -51,7 +51,18 @@ final class InitialSetupViewModel: ObservableObject {
     
     func saveUserInfo() {
         do {
+            // Önce var olan userId'yi kontrol et veya yeni oluştur
+            let userId: String
+            do {
+                userId = try KeychainManager.shared.getUserId()
+            } catch KeychainError.notFound {
+                // Yeni bir UUID oluştur ve kaydet
+                userId = UUID().uuidString
+                try KeychainManager.shared.saveUserId(userId)
+            }
+            
             let userInfo = InitialUserInfo(
+                userId: userId,
                 name: name,
                 workspaceType: selectedWorkspaceTypes,
                 exercisePreferences: selectedExerciseTypes,
