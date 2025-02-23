@@ -169,7 +169,10 @@ final class UserExercisesService {
         ]
         
         do {
-            // Her kullanıcı için bir koleksiyon oluştur ve altına completions ekle
+            // Her kullanıcı için bir document oluştur ve içine userId'yi ekle
+            try await db.collection("completedExercises").document(userId).setData(["userId": userId], merge: true)
+            
+            // Altına completions ekle
             let userRef = db.collection("completedExercises").document(userId).collection("completions")
             try await userRef.document(completed.id).setData(data)
         } catch {
