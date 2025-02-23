@@ -82,7 +82,6 @@ final class DashboardViewModel: ObservableObject, UserExercisesServiceDelegate {
         
         // Önce workSchedule'ı InitialSetupService'den al
         guard let userInfo = try? await initialSetupService.getUserInfo() else {
-            print("❌ Kullanıcı bilgileri alınamadı")
             return
         }
         let schedule = userInfo.workSchedule

@@ -33,13 +33,11 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     // MARK: - Remote Notification Registration
     func application(_ application: UIApplication,
                     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        print("📱 Successfully registered for remote notifications with token")
         Messaging.messaging().apnsToken = deviceToken
     }
     
     func application(_ application: UIApplication,
                     didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        print("❌ Failed to register for remote notifications: \(error.localizedDescription)")
     }
     
     // MARK: - Notification Delegate Methods
@@ -68,6 +66,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 struct MoveBuddyApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
+    
     // MARK: - Global Services
     @StateObject private var loadingService = LoadingService.shared
     @StateObject private var errorHandlingService = ErrorHandlingService.shared
@@ -91,7 +90,6 @@ struct MoveBuddyApp: App {
                 do {
                     try await setupGlobalErrorHandling()
                 } catch {
-                    print("Global error handling setup failed: \(error)")
                 }
             }
         }

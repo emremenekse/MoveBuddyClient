@@ -23,7 +23,6 @@ final class LoadingService: ObservableObject {
         DispatchQueue.main.async {
             self.isLoading = true
             let timestamp = self.dateFormatter.string(from: Date())
-            print("⏳ [\(timestamp)] DEBUG: Loading started, isLoading: \(self.isLoading)")
         }
     }
 
@@ -31,7 +30,6 @@ final class LoadingService: ObservableObject {
         DispatchQueue.main.async {
             self.isLoading = false
             let timestamp = self.dateFormatter.string(from: Date())
-            print("✅ [\(timestamp)] DEBUG: Loading stopped, isLoading: \(self.isLoading)")
         }
     }
 } 

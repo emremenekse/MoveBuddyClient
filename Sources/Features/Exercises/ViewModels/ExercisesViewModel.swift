@@ -55,11 +55,8 @@ final class ExercisesViewModel: ObservableObject {
         
         // UserDefaults'taki verileri yazdır
         let defaults = UserDefaults.standard
-        print("🔍 UserDefaults içeriği:")
-        print("selectedExercises:", defaults.object(forKey: "selectedExercises") ?? "Boş")
         if let data = defaults.data(forKey: "selectedExercises"),
            let exercises = try? JSONDecoder().decode([UserSelectedExercise].self, from: data) {
-            print("Çözümlenmiş egzersizler:", exercises)
         }
         
         setupBindings()

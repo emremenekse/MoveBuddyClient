@@ -10,14 +10,11 @@ final class FirebaseService {
     
     func configure() {
         guard !isConfigured else {
-            print("⚠️ Firebase is already configured")
             return
         }
         
-        print("🔥 Configuring Firebase...")
         FirebaseApp.configure()
         FirebaseConfiguration.shared.setLoggerLevel(.min)
         isConfigured = true
-        print("✅ Firebase configuration completed")
     }
 }

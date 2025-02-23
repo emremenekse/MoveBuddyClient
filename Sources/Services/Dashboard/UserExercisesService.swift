@@ -72,7 +72,6 @@ final class UserExercisesService {
         Task {
             // Delegate'e haber ver
             await MainActor.run {
-                print("Egzersizler yeniden planlanıyorAAA")
                 delegate?.userExercisesDidChange()
             }
         }
@@ -117,7 +116,6 @@ final class UserExercisesService {
         }
         
         selectedExercises = exercises
-        print(" Yüklenen egzersizler:", exercises.count)
     }
     
     private func saveSelectedExercises() {
@@ -142,14 +140,18 @@ final class UserExercisesService {
     }
     
     private func saveCompletedExerciseToFirestore(_ completed: CompletedExercise) async {
-        // Egzersiz bilgilerini al
+        // Önce egzersizleri yükle
+        if exercisesService.exercises.isEmpty {
+            await exercisesService.fetchExercises()
+        }
+        
         guard let exercise = exercisesService.exercises.first(where: { $0.id == completed.exerciseId }) else {
-            print("❌ Egzersiz bulunamadı:", completed.exerciseId)
+            Logger.shared.log("Egzersiz bulunamadı: \(completed.exerciseId)", level: "ERROR")
             return
         }
         
         guard let userId = try? KeychainManager.shared.getUserId() else {
-            print("❌ UserId bulunamadı")
+            Logger.shared.log("UserId bulunamadı", level: "ERROR")
             return
         }
         
@@ -176,7 +178,7 @@ final class UserExercisesService {
             let userRef = db.collection("completedExercises").document(userId).collection("completions")
             try await userRef.document(completed.id).setData(data)
         } catch {
-            print("❌ Firebase kayıt hatası:", error.localizedDescription)
+            Logger.shared.log("Firebase kayıt hatası: \(error.localizedDescription)", level: "ERROR")
         }
     }
 }

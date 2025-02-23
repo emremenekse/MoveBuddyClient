@@ -6,17 +6,9 @@ final class UserService {
     private let db = Firestore.firestore()
     private let collectionName = "userProfiles"  // users yerine userProfiles kullanalım
     
-    private init() {
-        #if DEBUG
-        print("[UserService] Initialized with collection: \(collectionName)")
-        #endif
-    }
     
     // Firestore'da kullanıcı dokümanını oluştur/güncelle
     func saveUserData(userId: String, nickname: String) async throws {
-        #if DEBUG
-        print("[UserService] Attempting to save data for userId: \(userId), nickname: \(nickname)")
-        #endif
         
         let data: [String: Any] = [
             "userId": userId,
@@ -27,17 +19,7 @@ final class UserService {
         
         do {
             try await db.collection(collectionName).document(userId).setData(data, merge: true)
-            #if DEBUG
-            print("[UserService] Successfully saved data for userId: \(userId)")
-            #endif
         } catch let error as NSError {
-            #if DEBUG
-            print("[UserService] Error saving data: \(error.localizedDescription)")
-            print("[UserService] Error domain: \(error.domain), code: \(error.code)")
-            if let errorDetails = error.userInfo[NSLocalizedDescriptionKey] {
-                print("[UserService] Error details: \(errorDetails)")
-            }
-            #endif
             throw error
         }
     }
@@ -53,9 +35,6 @@ final class UserService {
     
     // UserId ile kullanıcı bilgilerini getir
     func getUserData(userId: String) async throws -> (userId: String, nickname: String)? {
-        #if DEBUG
-        print("[UserService] Attempting to get data for userId: \(userId)")
-        #endif
         
         let document = try await db.collection(collectionName).document(userId).getDocument()
         

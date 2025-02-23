@@ -15,16 +15,13 @@ final class PushNotificationService: NSObject {
     }
     
     func configure() {
-        print("📱 Setting up notifications...")
         UNUserNotificationCenter.current().delegate = self
         requestAuthorization()
         
-        print("🔔 Registering for remote notifications...")
         DispatchQueue.main.async {
             UIApplication.shared.registerForRemoteNotifications()
         }
         
-        print("⚙️ Configuring FCM...")
         Messaging.messaging().isAutoInitEnabled = true
         configureFCM()
         
@@ -38,10 +35,8 @@ final class PushNotificationService: NSObject {
             completionHandler: { granted, error in
                 DispatchQueue.main.async {
                     if let error = error {
-                        print("❌ Notification authorization error: \(error.localizedDescription)")
                         return
                     }
-                    print(granted ? "✅ Notification permission granted" : "⚠️ Notification permission denied")
                 }
             }
         )
@@ -55,10 +50,8 @@ final class PushNotificationService: NSObject {
         Messaging.messaging().subscribe(toTopic: topic) { error in
             DispatchQueue.main.async {
                 if let error = error {
-                    print("❌ Topic subscription error: \(error.localizedDescription)")
                     return
                 }
-                print("✅ Subscribed to topic: \(topic)")
             }
         }
     }
@@ -92,7 +85,6 @@ extension PushNotificationService: UNUserNotificationCenterDelegate {
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        print("📬 Received notification while app is in foreground")
         completionHandler([[.banner, .sound]])
     }
     
@@ -101,7 +93,6 @@ extension PushNotificationService: UNUserNotificationCenterDelegate {
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
-        print("👆 User tapped on notification")
         completionHandler()
     }
 }
@@ -111,14 +102,9 @@ extension PushNotificationService: MessagingDelegate {
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
         DispatchQueue.main.async {
             guard let token = fcmToken else {
-                print("❌ Failed to get FCM token")
                 return
             }
             
-            print("\n📱 Device Token for Push Notifications:")
-            print("----------------------------------------")
-            print("🔑 FCM Token: \(token)")
-            print("----------------------------------------\n")
         }
     }
 }

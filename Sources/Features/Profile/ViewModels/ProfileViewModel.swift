@@ -83,7 +83,6 @@ final class ProfileViewModel: ObservableObject {
                 }
             }
         } catch {
-            print("Nickname yüklenirken hata: \(error)")
         }
     }
     

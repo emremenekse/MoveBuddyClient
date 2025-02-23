@@ -29,7 +29,6 @@ final class ExerciseNotificationService: ExerciseNotificationServiceProtocol {
     }
     
     func scheduleNotification(for exercise: UpcomingExercise) async throws {
-        print("Scheduling notification for: \(exercise)")
         // Önce izin kontrolü yap
         try await requestNotificationPermission()
         
@@ -114,7 +113,6 @@ final class ExerciseNotificationService: ExerciseNotificationServiceProtocol {
                 try await Task.sleep(nanoseconds: 30 * NSEC_PER_SEC)
                 
                 let notifications = await notificationCenter.deliveredNotifications()
-                print("📬 Aktif bildirim sayısı: \(notifications.count)")
                 
                 var expiredNotifications: [String] = []
                 
@@ -134,7 +132,6 @@ final class ExerciseNotificationService: ExerciseNotificationServiceProtocol {
                 
                 // Eğer süresi geçmiş bildirim varsa
                 if !expiredNotifications.isEmpty {
-                    print("🗑️ \(expiredNotifications.count) adet bildirimin süresi doldu, kaldırılıyor")
                     notificationCenter.removeDeliveredNotifications(withIdentifiers: expiredNotifications)
                     notificationCenter.removePendingNotificationRequests(withIdentifiers: expiredNotifications)
                     
@@ -183,12 +180,10 @@ final class ExerciseNotificationService: ExerciseNotificationServiceProtocol {
         
         switch action {
         case .complete:
-            print("✅ Egzersiz tamamlandı: \(exerciseId)")
             await MainActor.run {
                 UserExercisesService.shared.completeExercise(exerciseId)
             }
         case .skip:
-            print("⏭️ Egzersiz atlandı: \(exerciseId)")
             await MainActor.run {
                 UserExercisesService.shared.skipExercise()
             }

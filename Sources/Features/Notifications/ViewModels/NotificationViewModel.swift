@@ -19,7 +19,6 @@ final class NotificationViewModel: ObservableObject {
                     isNotificationsEnabled = granted
                 }
             } catch {
-                print("Bildirim izni alınamadı: \(error)")
             }
         }
     }
@@ -39,9 +38,7 @@ final class NotificationViewModel: ObservableObject {
                 await MainActor.run {
                     notifications.append(notification)
                 }
-                print("✅ Test bildirimi gönderildi!")
             } catch {
-                print("❌ Bildirim gönderilemedi: \(error)")
             }
         }
     }

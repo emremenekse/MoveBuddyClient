@@ -44,7 +44,6 @@ final class ExerciseNotificationManager: NSObject, UNUserNotificationCenterDeleg
                 do {
                     try await service.scheduleNotification(for: exercise)
                 } catch {
-                    print("⚠️ Bildirim planlanamadı: \(error.localizedDescription)")
                 }
             }
         }
@@ -84,7 +83,6 @@ final class ExerciseNotificationManager: NSObject, UNUserNotificationCenterDeleg
             do {
                 try await service.handleNotificationResponse(exerciseId: exerciseId, action: action)
             } catch {
-                print("⚠️ Bildirim yanıtı işlenemedi:", error.localizedDescription)
             }
         }
     }
@@ -117,14 +115,12 @@ final class ExerciseNotificationManager: NSObject, UNUserNotificationCenterDeleg
             
             // İlk 30 bildirimi planla (iOS limiti nedeniyle)
             let limitedExercises = Array(exercises.prefix(30))
-            print("🔔 Planlanan bildirim sayısı:", limitedExercises.count)
             writeExercisesToFile(limitedExercises)
             
             for exercise in limitedExercises {
                 do {
                     try await service.scheduleNotification(for: exercise)
                 } catch {
-                    print("⚠️ Bildirim planlanamadı:", error.localizedDescription)
                 }
             }
         }
@@ -134,7 +130,6 @@ final class ExerciseNotificationManager: NSObject, UNUserNotificationCenterDeleg
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let fileURL = documentsPath.appendingPathComponent("planned_exercises.txt")
         
-        print("📝 Dosya kaydediliyor:", fileURL.path)
         
         do {
             // Eğer dosya yoksa oluştur
@@ -146,9 +141,7 @@ final class ExerciseNotificationManager: NSObject, UNUserNotificationCenterDeleg
             let exerciseStrings = exercises.map { "Exercise: \($0)" }.joined(separator: "\n")
             // Write to file, this will overwrite existing content
             try exerciseStrings.write(to: fileURL, atomically: true, encoding: .utf8)
-            print("✅ Dosya başarıyla kaydedildi")
         } catch {
-            print("⚠️ Error writing to file:", error)
         }
     }
 }

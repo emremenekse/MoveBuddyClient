@@ -85,12 +85,6 @@ final class ErrorHandlingService: ObservableObject {
             showError = true
         }
         
-        #if DEBUG
-        print("🔴 Error Type: \(error.errorType)")
-        print("📝 Title: \(error.title)")
-        print("📝 Message: \(error.message)")
-        print("🔢 Code: \(error.code)")
-        #endif
     }
     
     private func convertError(_ error: Error) -> AppErrorProtocol {
