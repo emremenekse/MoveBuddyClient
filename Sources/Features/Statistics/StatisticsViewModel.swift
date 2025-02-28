@@ -34,10 +34,12 @@ struct LeaderboardEntry: Identifiable {
 }
 
 struct PopularExercise: Identifiable {
-    let id: String // exerciseId
+    let exerciseId: String
     let name: String
-    let completionCount: Int
+    let completions: Int
     let rank: Int
+    
+    var id: String { exerciseId } // Conformance to Identifiable
 }
 
 struct CategoryStats {
@@ -69,9 +71,9 @@ struct LeaderboardStats {
                   let rank = exercise["rank"] as? Int
             else { return nil }
             
-            return PopularExercise(id: exerciseId,
+            return PopularExercise(exerciseId: exerciseId,
                                   name: name,
-                                  completionCount: completionCount,
+                                  completions: completionCount,
                                   rank: rank)
         }
         
@@ -167,12 +169,33 @@ struct LeaderboardStats {
 final class StatisticsViewModel: ObservableObject {
     private let db = Firestore.firestore()
     @Published var leaderboardStats: LeaderboardStats?
-    
+    @Published var userNickname: String = "Loading..."
     @Published var allTimeCompletedExercises: [UserCompletedExercise] = []
     @Published var weeklyCompletedExercises: [UserCompletedExercise] = []
     
+    private func formatNickname(_ nickname: String) -> String {
+        let parts = nickname.split(separator: "_")
+        if parts.count >= 2 {
+            return "\(parts[0])_\(parts[1])"
+        }
+        return nickname
+    }
+    
+    private func fetchUserNickname() async {
+        do {
+            if let userId = try? KeychainManager.shared.getUserId(),
+               let userData = try await UserService.shared.getUserData(userId: userId) {
+                self.userNickname = formatNickname(userData.nickname)
+            }
+        } catch {
+            print("❌ Error fetching user nickname: \(error.localizedDescription)")
+            self.userNickname = "Anonymous"
+        }
+    }
+    
     init() {
         Task {
+            await fetchUserNickname()
             await fetchLeaderboardStats()
             await fetchUserCompletedExercises()
         }
@@ -222,7 +245,7 @@ final class StatisticsViewModel: ObservableObject {
                 
                 print("\n📈 Popular Exercises:")
                 for exercise in stats.popularExercises {
-                    print("\(exercise.rank). \(exercise.name): \(exercise.completionCount) completions")
+                    print("\(exercise.rank). \(exercise.name): \(exercise.completions) completions")
                 }
                 
                 print("\n📋 Category Breakdown:")
