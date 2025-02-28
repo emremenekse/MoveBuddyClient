@@ -1,308 +1,289 @@
 import Foundation
 import FirebaseFirestore
-import Combine
 
-
-
-struct ExerciseCompletion {
+struct UserCompletedExercise: Identifiable {
+    let id: String
+    let exerciseName: String
     let completedAt: Date
-    let difficulty: String
     let duration: Int
-    let exerciseId: Int
-    let name: String
+    let difficulty: String
     let categories: [String]
-
-    init?(from dict: [String: Any]) {
-
-        guard let timestamp = dict["completedAt"] as? Timestamp else {
-            return nil
-        }
-        guard let difficulty = dict["difficulty"] as? String else {
-            return nil
-        }
-        guard let duration = dict["duration"] as? Int else {
-            return nil
-        }
-
-        // 🔥 Handle Int, Double, NSNumber, *and now String*
-        let exerciseId: Int
-        if let number = dict["exerciseId"] as? NSNumber {
-            exerciseId = number.intValue
-        } else if let intValue = dict["exerciseId"] as? Int {
-            exerciseId = intValue
-        } else if let doubleValue = dict["exerciseId"] as? Double {
-            exerciseId = Int(doubleValue)
-        }
-        // ➜ NEW: Handle String that can be converted to Int
-        else if let stringValue = dict["exerciseId"] as? String, 
-                let convertedInt = Int(stringValue) {
-            exerciseId = convertedInt
-        } else {
-            return nil
-        }
-
-        guard let name = dict["name"] as? String else {
-            return nil
-        }
-        guard let categories = dict["categories"] as? [String] else {
-            return nil
-        }
-
-        self.completedAt = timestamp.dateValue()
-        self.difficulty = difficulty
-        self.duration = duration
-        self.exerciseId = exerciseId
-        self.name = name
-        self.categories = categories
-
+    
+    init?(from document: QueryDocumentSnapshot) {
+        let data = document.data()
+        self.id = document.documentID
+        guard let name = data["name"] as? String,
+              let completedAtTimestamp = data["completedAt"] as? Timestamp
+        else { return nil }
+        
+        self.exerciseName = name
+        self.completedAt = completedAtTimestamp.dateValue()
+        self.duration = data["duration"] as? Int ?? 0
+        self.difficulty = data["difficulty"] as? String ?? "unknown"
+        self.categories = data["categories"] as? [String] ?? []
     }
 }
 
-
-
-
-
-
-
-struct UserStats {
-    let userId: String
-    var completions: [ExerciseCompletion]
-
-    init(userId: String, from dict: [String: Any]) {
-        self.userId = userId
-
-        // Debug: Check if `completions` exists
-        guard let rawCompletions = dict["completions"] else {
-            self.completions = []
-            return
-        }
-
-
-        // Ensure completions is correctly cast as an array of dictionaries
-        let completionsData = dict["completions"] as? [[String: Any]] ?? []
-        
-        // Debugging: Print each completion entry
-        for (index, entry) in completionsData.enumerated() {
-            print("🔍 Completion \(index + 1) for \(userId):", entry)
-        }
-        
-        // Convert completions safely
-        self.completions = completionsData.compactMap { ExerciseCompletion(from: $0) }
-
-    }
-}
-
-
-
-
-struct ExerciseStatsDocument {
-    let lastUpdated: Date
+struct LeaderboardEntry: Identifiable {
+    let id: String // userId
+    let nickname: String
+    let rank: Int
     let totalCompletions: Int
-    let totalUsers: Int
-    var userStats: [String: UserStats]
-
-    init?(from dict: [String: Any]) {
-
-        // Handle lastUpdated
-        if let timestamp = dict["lastUpdated"] as? Timestamp {
-            self.lastUpdated = timestamp.dateValue()
-        } else if let dateString = dict["lastUpdated"] as? String {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
-            formatter.timeZone = TimeZone(secondsFromGMT: 0)
-            if let date = formatter.date(from: dateString) {
-                self.lastUpdated = date
-            } else {
-                return nil
-            }
-        } else {
-            return nil
-        }
-
-        guard let totalCompletions = dict["totalCompletions"] as? Int,
-              let totalUsers = dict["totalUsers"] as? Int else {
-            return nil
-        }
-
-        self.totalCompletions = totalCompletions
-        self.totalUsers = totalUsers
-
-        // 🔍 Debug: Check if `userStats` exists
-        guard let userStatsData = dict["userStats"] as? [String: Any] else {
-            return nil
-        }
-
-        self.userStats = userStatsData.compactMapValues { userData in
-            guard let userDataDict = userData as? [String: Any] else {
-                return nil
-            }
-            return UserStats(userId: userDataDict["userId"] as? String ?? "unknown", from: userDataDict)
-        }
-
-    }
+    let totalDuration: Int?
+    let totalDurationFormatted: String?
 }
 
+struct PopularExercise: Identifiable {
+    let id: String // exerciseId
+    let name: String
+    let completionCount: Int
+    let rank: Int
+}
 
+struct CategoryStats {
+    let exerciseId: String
+    let completionCount: Int
+}
 
-
-
+struct LeaderboardStats {
+    let lastUpdated: Date
+    let allTimeLeaderboard: [LeaderboardEntry]
+    let allTimeLeaderboardByDuration: [LeaderboardEntry]
+    let weeklyLeaderboard: [LeaderboardEntry]
+    let weeklyLeaderboardByDuration: [LeaderboardEntry]
+    let popularExercises: [PopularExercise]
+    let categoryBreakdown: [CategoryStats]
+    let totalCompletions: Int
+    
+    init?(from dict: [String: Any]) {
+        // Last Updated
+        guard let lastUpdatedTimestamp = dict["lastUpdated"] as? Timestamp else { return nil }
+        self.lastUpdated = lastUpdatedTimestamp.dateValue()
+        
+        // Popular Exercises
+        let popularExercisesData = dict["popularExercises"] as? [[String: Any]] ?? []
+        self.popularExercises = popularExercisesData.compactMap { exercise in
+            guard let exerciseId = exercise["exerciseId"] as? String,
+                  let name = exercise["name"] as? String,
+                  let completionCount = exercise["completionCount"] as? Int,
+                  let rank = exercise["rank"] as? Int
+            else { return nil }
+            
+            return PopularExercise(id: exerciseId,
+                                  name: name,
+                                  completionCount: completionCount,
+                                  rank: rank)
+        }
+        
+        // All Time Leaderboard
+        let allTimeData = dict["allTimeLeaderboard"] as? [[String: Any]] ?? []
+        self.allTimeLeaderboard = allTimeData.compactMap { entry in
+            guard let userId = entry["userId"] as? String,
+                  let nickname = entry["nickname"] as? String,
+                  let rank = entry["rank"] as? Int,
+                  let totalCompletions = entry["totalCompletions"] as? Int
+            else { return nil }
+            
+            return LeaderboardEntry(id: userId,
+                                   nickname: nickname,
+                                   rank: rank,
+                                   totalCompletions: totalCompletions,
+                                   totalDuration: nil,
+                                   totalDurationFormatted: nil)
+        }
+        
+        // All Time Leaderboard By Duration
+        let allTimeByDurationData = dict["allTimeLeaderboardByDuration"] as? [[String: Any]] ?? []
+        self.allTimeLeaderboardByDuration = allTimeByDurationData.compactMap { entry in
+            guard let userId = entry["userId"] as? String,
+                  let nickname = entry["nickname"] as? String,
+                  let rank = entry["rank"] as? Int,
+                  let totalCompletions = entry["completionsCount"] as? Int,
+                  let totalDuration = entry["totalDuration"] as? Int,
+                  let totalDurationFormatted = entry["totalDurationFormatted"] as? String
+            else { return nil }
+            
+            return LeaderboardEntry(id: userId,
+                                   nickname: nickname,
+                                   rank: rank,
+                                   totalCompletions: totalCompletions,
+                                   totalDuration: totalDuration,
+                                   totalDurationFormatted: totalDurationFormatted)
+        }
+        
+        // Weekly Leaderboards
+        let weeklyData = dict["weeklyLeaderboard"] as? [[String: Any]] ?? []
+        self.weeklyLeaderboard = weeklyData.compactMap { entry in
+            guard let userId = entry["userId"] as? String,
+                  let nickname = entry["nickname"] as? String,
+                  let rank = entry["rank"] as? Int,
+                  let totalCompletions = entry["totalCompletions"] as? Int
+            else { return nil }
+            
+            return LeaderboardEntry(id: userId,
+                                   nickname: nickname,
+                                   rank: rank,
+                                   totalCompletions: totalCompletions,
+                                   totalDuration: nil,
+                                   totalDurationFormatted: nil)
+        }
+        
+        // Weekly Leaderboard By Duration
+        let weeklyByDurationData = dict["weeklyLeaderboardByDuration"] as? [[String: Any]] ?? []
+        self.weeklyLeaderboardByDuration = weeklyByDurationData.compactMap { entry in
+            guard let userId = entry["userId"] as? String,
+                  let nickname = entry["nickname"] as? String,
+                  let rank = entry["rank"] as? Int,
+                  let totalCompletions = entry["completionsCount"] as? Int,
+                  let totalDuration = entry["totalDuration"] as? Int,
+                  let totalDurationFormatted = entry["totalDurationFormatted"] as? String
+            else { return nil }
+            
+            return LeaderboardEntry(id: userId,
+                                   nickname: nickname,
+                                   rank: rank,
+                                   totalCompletions: totalCompletions,
+                                   totalDuration: totalDuration,
+                                   totalDurationFormatted: totalDurationFormatted)
+        }
+        
+        // Category Breakdown
+        let categoryData = dict["categoryBreakdown"] as? [[String: Any]] ?? []
+        self.categoryBreakdown = categoryData.compactMap { category in
+            guard let exerciseId = category["exerciseId"] as? String,
+                  let completionCount = category["completionCount"] as? Int
+            else { return nil }
+            
+            return CategoryStats(exerciseId: exerciseId,
+                                completionCount: completionCount)
+        }
+        
+        // Total Completions
+        self.totalCompletions = dict["totalCompletions"] as? Int ?? 0
+    }
+}
 
 @MainActor
 final class StatisticsViewModel: ObservableObject {
     private let db = Firestore.firestore()
+    @Published var leaderboardStats: LeaderboardStats?
     
-    @Published var exerciseStats: ExerciseStatsDocument?
-    @Published var isLoading = false
-    @Published var error: Error?
-    
-    // Computed properties for easy access
-    var totalUsersCount: Int { exerciseStats?.totalUsers ?? 0 }
-    var totalCompletionsCount: Int { exerciseStats?.totalCompletions ?? 0 }
-    var lastUpdated: String {
-        guard let date = exerciseStats?.lastUpdated else { return "" }
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
-    }
+    @Published var allTimeCompletedExercises: [UserCompletedExercise] = []
+    @Published var weeklyCompletedExercises: [UserCompletedExercise] = []
     
     init() {
-        // Call loadInitialData when the ViewModel is initialized
         Task {
-            await loadInitialData()
+            await fetchLeaderboardStats()
+            await fetchUserCompletedExercises()
         }
     }
     
-    func loadInitialData() async {
-        // Similar to ngOnInit in Angular
-        await fetchUserProfiles()
-        await fetchExercises()
-        await fetchStatistics()
+    private func getLastWeekDate() -> Date {
+        let calendar = Calendar.current
+        return calendar.date(byAdding: .day, value: -7, to: Date()) ?? Date()
     }
     
-    func fetchUserProfiles() async {
-        isLoading = true
-        defer { isLoading = false }
-        
+    func fetchLeaderboardStats() async {
         do {
-            let snapshot = try await db.collection("userProfiles").limit(to: 33).getDocuments()
-            print("\n=== User Profiles (33) ===\n")
-            for document in snapshot.documents {
-                if let data = document.data() as? [String: Any] {
-                    print("User ID: \(document.documentID)")
-                    print("Data: \(data)\n")
-                }
-            }
-        } catch {
-            self.error = error
-            print("Error fetching user profiles: \(error.localizedDescription)")
-        }
-    }
-    
-    func fetchExercises() async {
-        isLoading = true
-        defer { isLoading = false }
-        
-        do {
-            let snapshot = try await db.collection("exercises").limit(to: 33).getDocuments()
-            print("\n=== Exercises (33) ===\n")
-            for document in snapshot.documents {
-                if let data = document.data() as? [String: Any] {
-                    print("Exercise ID: \(document.documentID)")
-                    print("Data: \(data)\n")
-                }
-            }
-        } catch {
-            self.error = error
-            print("Error fetching exercises: \(error.localizedDescription)")
-        }
-    }
-
-    func fetchStatistics() async {
-    isLoading = true
-    defer { isLoading = false }
-    
-    do {
-        let document = try await db.collection("stats").document("exerciseStats").getDocument()
-        print("\n=== Raw Firestore Data ===\n")
-        
-        guard let data = document.data() else {
-            print("❌ No statistics data found")
-            return
-        }
-
-        // Print raw Firestore data to confirm structure
-        print(data)
-
-        // Try to parse the document and debug failures
-        if let stats = ExerciseStatsDocument(from: data) {
-            self.exerciseStats = stats
-            print("✅ Successfully parsed ExerciseStatsDocument!")
+            let snapshot = try await db.collection("leaderboardStats").document("latest").getDocument()
             
-            // 🎉 Print the parsed data
-            print("\n=== Parsed ExerciseStats ===")
-            print("📅 Last Updated: \(stats.lastUpdated)")
-            print("👥 Total Users: \(stats.totalUsers)")
-            print("🏋️ Total Completions: \(stats.totalCompletions)")
-
-            // Print user statistics
-            print("\n=== User Stats ===")
-            for (userId, userStats) in stats.userStats {
-                print("\n👤 User ID: \(userId)")
-                print("🔄 Number of Completions: \(userStats.completions.count)")
+            guard let data = snapshot.data() else {
+                print("❌ No data found in leaderboardStats/latest document")
+                return
+            }
+            
+            if let stats = LeaderboardStats(from: data) {
+                self.leaderboardStats = stats
                 
-                for completion in userStats.completions {
-                    print("\n📝 Exercise Name: \(completion.name)")
-                    print("   📅 Completed At: \(completion.completedAt)")
-                    print("   ⏳ Duration: \(completion.duration) seconds")
-                    print("   🎯 Difficulty: \(completion.difficulty)")
-                    print("   🏷 Categories: \(completion.categories.joined(separator: ", "))")
+                print("\n📊 Leaderboard Stats:")
+                print("-------------------")
+                print("Last Updated: \(stats.lastUpdated)")
+                print("Total Completions: \(stats.totalCompletions)")
+                
+                print("\n🏆 All-Time Leaderboard:")
+                for entry in stats.allTimeLeaderboard {
+                    print("\(entry.rank). \(entry.nickname): \(entry.totalCompletions) total completions")
                 }
+                
+                print("\n⏱ All-Time Leaderboard By Duration:")
+                for entry in stats.allTimeLeaderboardByDuration {
+                    print("\(entry.rank). \(entry.nickname): \(entry.totalDurationFormatted ?? "0m") total time")
+                }
+                
+                print("\n🏅 Weekly Leaderboard:")
+                for entry in stats.weeklyLeaderboard {
+                    print("\(entry.rank). \(entry.nickname): \(entry.totalCompletions) completions this week")
+                }
+                
+                print("\n⌛️ Weekly Leaderboard By Duration:")
+                for entry in stats.weeklyLeaderboardByDuration {
+                    print("\(entry.rank). \(entry.nickname): \(entry.totalDurationFormatted ?? "0m") this week")
+                }
+                
+                print("\n📈 Popular Exercises:")
+                for exercise in stats.popularExercises {
+                    print("\(exercise.rank). \(exercise.name): \(exercise.completionCount) completions")
+                }
+                
+                print("\n📋 Category Breakdown:")
+                for category in stats.categoryBreakdown {
+                    print("Exercise ID: \(category.exerciseId), Completions: \(category.completionCount)")
+                }
+            } else {
+                print("❌ Failed to parse leaderboard stats")
             }
-        } else {
-            print("❌ Failed to parse statistics data.")
+        } catch {
+            print("❌ Error fetching leaderboard stats: \(error.localizedDescription)")
         }
-    } catch {
-        self.error = error
-        print("⚠️ Error fetching statistics: \(error.localizedDescription)")
-    }
-}
-
-
-
-    
-    // Helper method to get user specific stats
-    func getUserStats(for userId: String) -> [ExerciseCompletion] {
-        return exerciseStats?.userStats[userId]?.completions ?? []
     }
     
-    // Get top users by completion count
-    func getTopUsers(limit: Int = 10) -> [(userId: String, completionCount: Int)] {
-        guard let userStats = exerciseStats?.userStats else { return [] }
-        
-        return userStats
-            .map { (userId: $0.key, completionCount: $0.value.completions.count) }
-            .sorted { $0.completionCount > $1.completionCount }
-            .prefix(limit)
-            .map { ($0.userId, $0.completionCount) }
-    }
-    
-    // Get most popular exercises
-    func getMostPopularExercises(limit: Int = 5) -> [(name: String, count: Int)] {
-        guard let userStats = exerciseStats?.userStats else { return [] }
-        
-        var exerciseCounts: [String: Int] = [:]
-        
-        for (_, stats) in userStats {
-            for completion in stats.completions {
-                exerciseCounts[completion.name, default: 0] += 1
+    func fetchUserCompletedExercises() async {
+        do {
+            guard let userId = try? KeychainManager.shared.getUserId() else {
+                print("❌ Error: UserId not found")
+                return
             }
+            print("👤 User ID: \(userId)")
+            let userCompletionsRef = db.collection("completedExercises")
+                .document(userId)
+                .collection("completions")
+            
+            let snapshot = try await userCompletionsRef.getDocuments()
+            
+            // Parse all exercises
+            let allExercises = snapshot.documents.compactMap { UserCompletedExercise(from: $0) }
+            self.allTimeCompletedExercises = allExercises
+            
+            // Filter for weekly exercises
+            let lastWeekDate = getLastWeekDate()
+            self.weeklyCompletedExercises = allExercises.filter { $0.completedAt >= lastWeekDate }
+            
+            // Print All-Time Exercises
+            print("\n🏆 All-Time Completed Exercises:")
+            print("--------------------------------")
+            for exercise in allTimeCompletedExercises {
+                printExerciseDetails(exercise)
+            }
+            print("\nTotal all-time completed exercises: \(allTimeCompletedExercises.count)")
+            
+            // Print Weekly Exercises
+            print("\n📈 Weekly Completed Exercises:")
+            print("------------------------------")
+            for exercise in weeklyCompletedExercises {
+                printExerciseDetails(exercise)
+            }
+            print("\nTotal weekly completed exercises: \(weeklyCompletedExercises.count)")
+            
+        } catch {
+            print("❌ Error fetching completed exercises: \(error.localizedDescription)")
         }
-        
-        return exerciseCounts
-            .sorted { $0.value > $1.value }
-            .prefix(limit)
-            .map { (name: $0.key, count: $0.value) }
     }
     
+    private func printExerciseDetails(_ exercise: UserCompletedExercise) {
+        print("\n🏋️ Exercise: \(exercise.exerciseName)")
+        print("   📅 Completed: \(exercise.completedAt)")
+        print("   ⏱️ Duration: \(exercise.duration) seconds")
+        print("   🎯 Difficulty: \(exercise.difficulty)")
+        print("   🎟️ Categories: \(exercise.categories.joined(separator: ", "))")
+    }
 }
