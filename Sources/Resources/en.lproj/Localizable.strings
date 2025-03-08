@@ -1,0 +1,53 @@
+/* 
+  Localizable.strings
+  MoveBuddy
+
+  English Localization
+*/
+
+// Common
+"common.ok" = "OK";
+"common.cancel" = "Cancel";
+"common.save" = "Save";
+"common.delete" = "Delete";
+"common.edit" = "Edit";
+"common.back" = "Back";
+"common.next" = "Next";
+"common.done" = "Done";
+"common.error" = "Error";
+
+// Dashboard
+"dashboard.title" = "Dashboard";
+"dashboard.welcome" = "Welcome to MoveBuddy!";
+"dashboard.greeting" = "Hello, %@!";
+"dashboard.daily.summary" = "Daily Summary";
+"dashboard.completed" = "Completed";
+"dashboard.exercises" = "exercises";
+"dashboard.total.time" = "Total Time";
+"dashboard.minutes" = "minutes";
+"dashboard.daily.goal" = "Daily Goal";
+"dashboard.remaining" = "remaining";
+"dashboard.upcoming.exercises" = "Upcoming Exercises";
+"dashboard.no.planned.exercises" = "No exercises planned for today";
+"dashboard.duration.minutes" = "%d min";
+
+// Settings - Language
+"settings.language.screen.title" = "Language";
+"settings.language.title" = "Select Language";
+"settings.language.info.title" = "Information";
+"settings.language.info.description" = "You need to restart the app for the language change to take full effect.";
+
+// Profile
+"profile.title" = "Profile";
+"profile.personal.info" = "Personal Information";
+"profile.name" = "Name";
+"profile.nickname" = "Nickname";
+"profile.language.settings" = "Language Settings";
+"profile.language" = "Language";
+"profile.workspace" = "Workspace";
+"profile.exercise.preferences" = "Exercise Preferences";
+"profile.work.schedule" = "Work Schedule";
+"profile.language.changed.title" = "Language Changed";
+"profile.language.changed.message" = "You need to restart the app for the language change to take full effect.";
+
+// Add more strings as needed

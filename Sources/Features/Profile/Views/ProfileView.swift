@@ -3,23 +3,37 @@ import SwiftUI
 struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
     @Environment(\.dismiss) private var dismiss
+    @State private var selectedLanguage: String = LocalizationManager.shared.currentLanguage
+    @State private var showLanguageChangeAlert = false
     
     var body: some View {
         NavigationView {
             Form {
-                // MARK: - Kişisel Bilgiler
-                Section("Kişisel Bilgiler") {
-                    TextField("Ad", text: $viewModel.name)
+                // MARK: - Personal Information
+                Section("profile.personal.info".localized) {
+                    TextField("profile.name".localized, text: $viewModel.name)
                     HStack {
-                        Text("Takma Ad")
+                        Text("profile.nickname".localized)
                         Spacer()
                         Text(viewModel.displayNickname)
                             .foregroundColor(.gray)
                     }
                 }
                 
-                // MARK: - Çalışma Alanı
-                Section("Çalışma Alanı") {
+                // MARK: - Language Settings
+                Section("profile.language.settings".localized) {
+                    Picker(selection: $selectedLanguage, label: Text("profile.language".localized)) {
+                        Text("English").tag("en")
+                        Text("Türkçe").tag("tr")
+                    }
+                    .onChange(of: selectedLanguage) { _ in
+                        LocalizationManager.shared.setLanguage(selectedLanguage)
+                        showLanguageChangeAlert = true
+                    }
+                }
+                
+                // MARK: - Workspace
+                Section("profile.workspace".localized) {
                     ForEach(WorkspaceType.allCases, id: \.self) { type in
                         Toggle(type.rawValue, isOn: Binding(
                             get: { viewModel.workspaceTypes.contains(type) },
@@ -34,8 +48,8 @@ struct ProfileView: View {
                     }
                 }
                 
-                // MARK: - Egzersiz Tercihleri
-                Section("Egzersiz Tercihleri") {
+                // MARK: - Exercise Preferences
+                Section("profile.exercise.preferences".localized) {
                     ForEach(ExerciseType.allCases, id: \.self) { type in
                         Toggle(type.rawValue, isOn: Binding(
                             get: { viewModel.exercisePreferences.contains(type) },
@@ -50,8 +64,8 @@ struct ProfileView: View {
                     }
                 }
                 
-                // MARK: - Çalışma Programı
-                Section("Çalışma Programı") {
+                // MARK: - Work Schedule
+                Section("profile.work.schedule".localized) {
                     ForEach(WeekDay.allCases, id: \.self) { day in
                         HStack {
                             Text(day.rawValue)
@@ -83,10 +97,10 @@ struct ProfileView: View {
                     }
                 }
             }
-            .navigationTitle("Profil")
+            .navigationTitle("profile.title".localized)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Kaydet") {
+                    Button("common.save".localized) {
                         Task {
                             await viewModel.saveChanges()
                         }
@@ -94,10 +108,15 @@ struct ProfileView: View {
                     .disabled(!viewModel.hasChanges)
                 }
             }
-            .alert("Hata", isPresented: $viewModel.showError) {
-                Button("Tamam", role: .cancel) {}
+            .alert("common.error".localized, isPresented: $viewModel.showError) {
+                Button("common.ok".localized, role: .cancel) {}
             } message: {
                 Text(viewModel.errorMessage)
+            }
+            .alert("profile.language.changed.title".localized, isPresented: $showLanguageChangeAlert) {
+                Button("common.ok".localized, role: .cancel) {}
+            } message: {
+                Text("profile.language.changed.message".localized)
             }
         }
     }

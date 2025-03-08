@@ -1,0 +1,53 @@
+/* 
+  Localizable.strings
+  MoveBuddy
+
+  Turkish Localization
+*/
+
+// Common
+"common.ok" = "Tamam";
+"common.cancel" = "İptal";
+"common.save" = "Kaydet";
+"common.delete" = "Sil";
+"common.edit" = "Düzenle";
+"common.back" = "Geri";
+"common.next" = "İleri";
+"common.done" = "Bitti";
+"common.error" = "Hata";
+
+// Dashboard
+"dashboard.title" = "Gösterge Paneli";
+"dashboard.welcome" = "MoveBuddy'ye Hoş Geldiniz!";
+"dashboard.greeting" = "Merhaba, %@!";
+"dashboard.daily.summary" = "Günlük Özet";
+"dashboard.completed" = "Tamamlanan";
+"dashboard.exercises" = "egzersiz";
+"dashboard.total.time" = "Toplam Süre";
+"dashboard.minutes" = "dakika";
+"dashboard.daily.goal" = "Günlük Hedef";
+"dashboard.remaining" = "kalan";
+"dashboard.upcoming.exercises" = "Yaklaşan Egzersizler";
+"dashboard.no.planned.exercises" = "Bugün için planlanmış egzersiz yok";
+"dashboard.duration.minutes" = "%d dk";
+
+// Settings - Language
+"settings.language.screen.title" = "Dil";
+"settings.language.title" = "Dil Seçin";
+"settings.language.info.title" = "Bilgi";
+"settings.language.info.description" = "Dil değişikliğinin tam olarak etkili olması için uygulamayı yeniden başlatmanız gerekir.";
+
+// Profile
+"profile.title" = "Profil";
+"profile.personal.info" = "Kişisel Bilgiler";
+"profile.name" = "Ad";
+"profile.nickname" = "Takma Ad";
+"profile.language.settings" = "Dil Ayarları";
+"profile.language" = "Dil";
+"profile.workspace" = "Çalışma Alanı";
+"profile.exercise.preferences" = "Egzersiz Tercihleri";
+"profile.work.schedule" = "Çalışma Programı";
+"profile.language.changed.title" = "Dil Değiştirildi";
+"profile.language.changed.message" = "Dil değişikliğinin tam olarak etkili olması için uygulamayı yeniden başlatmanız gerekir.";
+
+// Add more strings as needed

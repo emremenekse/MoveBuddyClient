@@ -8,15 +8,15 @@ struct DashboardView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 24) {
-                    // Günlük Özet Kartı
+                    // Daily Summary Card
                     DailySummaryCard(viewModel: viewModel)
                     
-                    // Yaklaşan Egzersizler
+                    // Upcoming Exercises
                     UpcomingExercisesCard(viewModel: viewModel)
                 }
                 .padding()
             }
-            .navigationTitle("Merhaba, \(viewModel.userName)!")
+            .navigationTitle("dashboard.greeting".localized(with: viewModel.userName))
             .refreshable {
                 await viewModel.refreshData()
             }
@@ -30,33 +30,33 @@ private struct DailySummaryCard: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Günlük Özet")
+            Text("dashboard.daily.summary".localized)
                 .font(.headline)
             
             HStack(spacing: 24) {
-                // Tamamlanan egzersizler
+                // Completed exercises
                 StatView(
-                    title: "Tamamlanan",
+                    title: "dashboard.completed".localized,
                     value: "\(viewModel.completedToday)",
-                    subtitle: "egzersiz",
+                    subtitle: "dashboard.exercises".localized,
                     icon: "checkmark.circle.fill",
                     color: .green
                 )
                 
-                // Harcanan süre
+                // Time spent
                 StatView(
-                    title: "Toplam Süre",
+                    title: "dashboard.total.time".localized,
                     value: "\(viewModel.completedMinutesToday)",
-                    subtitle: "dakika",
+                    subtitle: "dashboard.minutes".localized,
                     icon: "timer",
                     color: .blue
                 )
                 
-                // Kalan egzersizler (günlük hedef)
+                // Remaining exercises (daily goal)
                 StatView(
-                    title: "Günlük Hedef",
+                    title: "dashboard.daily.goal".localized,
                     value: "\(viewModel.remainingToday)",
-                    subtitle: "kalan",
+                    subtitle: "dashboard.remaining".localized,
                     icon: "target",
                     color: .orange
                 )
@@ -73,11 +73,11 @@ private struct UpcomingExercisesCard: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Yaklaşan Egzersizler")
+            Text("dashboard.upcoming.exercises".localized)
                 .font(.headline)
             
             if viewModel.upcomingExercises.isEmpty {
-                Text("Bugün için planlanmış egzersiz yok")
+                Text("dashboard.no.planned.exercises".localized)
                     .foregroundColor(.secondary)
             } else {
                 ForEach(viewModel.upcomingExercises) { exercise in
@@ -95,7 +95,7 @@ private struct UpcomingExercisesCard: View {
                         
                         Spacer()
                         
-                        Text("\(exercise.duration) dk")
+                        Text("dashboard.duration.minutes".localized(with: exercise.duration))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
