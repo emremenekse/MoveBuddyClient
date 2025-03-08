@@ -2,26 +2,34 @@ import Foundation
 
 struct OnboardingItem: Identifiable {
     let id = UUID()
-    let title: String
-    let description: String
+    let titleKey: String
+    let descriptionKey: String
     let imageName: String
+    
+    var title: String {
+        return titleKey.localized
+    }
+    
+    var description: String {
+        return descriptionKey.localized
+    }
 }
 
 extension OnboardingItem {
     static let items: [OnboardingItem] = [
         OnboardingItem(
-            title: "Hoş Geldiniz",
-            description: "MoveBuddy ile daha aktif bir yaşama adım atın.",
+            titleKey: "onboarding.welcome.title",
+            descriptionKey: "onboarding.welcome.description",
             imageName: "figure.walk"
         ),
         OnboardingItem(
-            title: "Kişiselleştirilmiş Öneriler",
-            description: "Size özel hareket önerileri ve hatırlatıcılar ile aktif kalın.",
+            titleKey: "onboarding.personalized.title",
+            descriptionKey: "onboarding.personalized.description",
             imageName: "person.fill.checkmark"
         ),
         OnboardingItem(
-            title: "Video Rehberler",
-            description: "Detaylı video rehberler ile hareketleri doğru şekilde yapın.",
+            titleKey: "onboarding.video.title",
+            descriptionKey: "onboarding.video.description",
             imageName: "play.circle.fill"
         )
     ]

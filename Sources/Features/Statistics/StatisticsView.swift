@@ -21,7 +21,7 @@ struct StatisticsView: View {
             }
             .padding()
             }
-            .navigationTitle("Statistics")
+            .navigationTitle("statistics.title".localized)
         }
     }
     
@@ -29,7 +29,7 @@ struct StatisticsView: View {
     private var userStatsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("Your Statistics")
+                Text("statistics.your.statistics".localized)
                     .font(.title2)
                     .bold()
                 
@@ -54,7 +54,7 @@ struct StatisticsView: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Welcome back!")
+                        Text("statistics.welcome.back".localized)
                             .font(.subheadline)
                             .foregroundColor(.gray)
                         Text(viewModel.userNickname)
@@ -65,12 +65,12 @@ struct StatisticsView: View {
                 .padding(.vertical, 8)
                 
                 // Weekly Stats
-                statsCard(title: "Weekly Stats",
+                statsCard(title: "statistics.weekly.stats".localized,
                          count: viewModel.weeklyCompletedExercises.count,
                          duration: viewModel.weeklyCompletedExercises.reduce(0) { $0 + $1.duration })
                 
                 // All-Time Stats
-                statsCard(title: "All-Time Stats",
+                statsCard(title: "statistics.all.time.stats".localized,
                          count: viewModel.allTimeCompletedExercises.count,
                          duration: viewModel.allTimeCompletedExercises.reduce(0) { $0 + $1.duration })
             }
@@ -85,7 +85,7 @@ struct StatisticsView: View {
     private var weeklyStatsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("Weekly Leaderboard")
+                Text("statistics.weekly.leaderboard".localized)
                     .font(.title2)
                     .bold()
                 
@@ -97,11 +97,11 @@ struct StatisticsView: View {
             }
             
             // Weekly Completions
-            leaderboardList(title: "Most Completions",
+            leaderboardList(title: "statistics.most.completions".localized,
                           entries: viewModel.leaderboardStats?.weeklyLeaderboard ?? [])
             
             // Weekly Duration
-            leaderboardList(title: "Longest Duration",
+            leaderboardList(title: "statistics.longest.duration".localized,
                           entries: viewModel.leaderboardStats?.weeklyLeaderboardByDuration ?? [])
         }
     }
@@ -110,7 +110,7 @@ struct StatisticsView: View {
     private var popularExercisesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("Popular Exercises")
+                Text("statistics.popular.exercises".localized)
                     .font(.title2)
                     .bold()
                 
@@ -163,7 +163,7 @@ struct StatisticsView: View {
                 Circle()
                     .fill(Color.blue.opacity(0.7))
                     .frame(width: 8, height: 8)
-                Text("Number of completions")
+                Text("statistics.number.of.completions".localized)
                     .font(.caption)
                     .foregroundColor(.gray)
                 Spacer()
@@ -176,7 +176,7 @@ struct StatisticsView: View {
     private var allTimeStatsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("All-Time Leaderboard")
+                Text("statistics.all.time.leaderboard".localized)
                     .font(.title2)
                     .bold()
                 
@@ -188,11 +188,11 @@ struct StatisticsView: View {
             }
             
             // All-Time Completions
-            leaderboardList(title: "Most Completions",
+            leaderboardList(title: "statistics.most.completions".localized,
                           entries: viewModel.leaderboardStats?.allTimeLeaderboard ?? [])
             
             // All-Time Duration
-            leaderboardList(title: "Longest Duration",
+            leaderboardList(title: "statistics.longest.duration".localized,
                           entries: viewModel.leaderboardStats?.allTimeLeaderboardByDuration ?? [])
         }
     }
@@ -206,11 +206,11 @@ struct StatisticsView: View {
             HStack(spacing: 20) {
                 statItem(icon: "checkmark.circle.fill",
                         value: "\(count)",
-                        label: "Exercises")
+                        label: "statistics.exercises".localized)
                 
                 statItem(icon: "clock.fill",
                         value: formatDuration(duration),
-                        label: "Duration")
+                        label: "statistics.duration".localized)
             }
         }
         .padding()
@@ -250,7 +250,7 @@ struct StatisticsView: View {
                 
                 Spacer()
                 
-                Text("Top 5")
+                Text("statistics.top.5".localized)
                     .font(.caption)
                     .foregroundColor(.gray)
                     .padding(.horizontal, 8)
@@ -282,16 +282,16 @@ struct StatisticsView: View {
                     
                     // User Info
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(entry.nickname.isEmpty ? "Anonymous" : entry.nickname)
+                        Text(entry.nickname.isEmpty ? "statistics.anonymous".localized : entry.nickname)
                             .font(.system(size: 16, weight: .medium))
                         
                         // Stat Info
                         HStack {
-                            Image(systemName: title.contains("Duration") ? "clock.fill" : "checkmark.circle.fill")
+                            Image(systemName: title == "statistics.longest.duration".localized ? "clock.fill" : "checkmark.circle.fill")
                                 .font(.system(size: 12))
                                 .foregroundColor(.gray)
                             
-                            Text(title.contains("Duration") ? formatDuration(entry.totalDuration ?? 0) : "\(entry.totalCompletions) completions")
+                            Text(title == "statistics.longest.duration".localized ? formatDuration(entry.totalDuration ?? 0) : "\(entry.totalCompletions) " + "statistics.completions".localized)
                                 .font(.system(size: 14))
                                 .foregroundColor(.gray)
                         }

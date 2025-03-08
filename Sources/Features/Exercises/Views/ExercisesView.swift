@@ -52,9 +52,9 @@ struct ExercisesView: View {
                 // MARK: - Egzersiz Listesi
                 if viewModel.filteredExercises.isEmpty {
                     ContentUnavailableView(
-                        "Egzersiz Bulunamadı",
+                        "exercises.not.found".localized,
                         systemImage: "figure.walk",
-                        description: Text("Seçili filtrelerle eşleşen egzersiz bulunamadı.")
+                        description: Text("exercises.no.match".localized)
                     )
                 } else {
                     List(viewModel.filteredExercises) { exercise in
@@ -80,7 +80,7 @@ struct ExercisesView: View {
                     .listStyle(.plain)
                 }
             }
-            .navigationTitle("Egzersizler")
+            .navigationTitle("exercises.title".localized)
             .searchable(
                 text: Binding(
                     get: { searchText },
@@ -89,7 +89,7 @@ struct ExercisesView: View {
                         viewModel.updateSearchText(newValue)
                     }
                 ),
-                prompt: "Egzersiz Ara"
+                prompt: "exercises.search".localized
             )
             .sheet(isPresented: $showingReminderSheet) {
                 if let exercise = selectedExercise {
@@ -206,7 +206,7 @@ private struct ExerciseRow: View {
                 }
             }
             .contentShape(Rectangle())
-            .onTapGesture { } // Buton tıklamalarının row'a yayılmasını engelle
+            .onTapGesture { } // Prevent button taps from propagating to the row
         }
         .padding(.vertical, 8)
     }
@@ -267,7 +267,7 @@ private struct ExerciseDetailSheet: View {
                     // Adımlar
                     if let steps = exercise.steps {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Adımlar")
+                            Text("exercises.steps".localized)
                                 .font(.headline)
                             
                             VStack(alignment: .leading, spacing: 16) {
@@ -288,7 +288,7 @@ private struct ExerciseDetailSheet: View {
                     
                     // Özellikler
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Özellikler")
+                        Text("exercises.properties".localized)
                             .font(.headline)
                         
                         VStack(alignment: .leading, spacing: 8) {

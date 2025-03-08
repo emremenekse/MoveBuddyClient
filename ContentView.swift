@@ -16,13 +16,13 @@ struct ContentView: View {
         NavigationStack {
             List {
                 NavigationLink(destination: NotificationSettingsView()) {
-                    Label("Bildirim Ayarları", systemImage: "bell.fill")
+                    Label("settings.notifications".localized, systemImage: "bell.fill")
                 }
                 
                 // Diğer menü öğeleri
-                Label("Egzersizler", systemImage: "figure.walk")
-                Label("Profil", systemImage: "person.fill")
-                Label("İstatistikler", systemImage: "chart.bar.fill")
+                Label("tab.exercises".localized, systemImage: "figure.walk")
+                Label("tab.profile".localized, systemImage: "person.fill")
+                Label("tab.statistics".localized, systemImage: "chart.bar.fill")
                 
                 // Çıkış butonu
                 Button(action: {
@@ -30,11 +30,11 @@ struct ContentView: View {
                         try? await authenticationService.signOut()
                     }
                 }) {
-                    Label("Çıkış Yap", systemImage: "rectangle.portrait.and.arrow.right")
+                    Label("auth.sign.out".localized, systemImage: "rectangle.portrait.and.arrow.right")
                         .foregroundColor(.red)
                 }
             }
-            .navigationTitle("MoveBuddy")
+            .navigationTitle("app.title".localized)
         }
     }
 }

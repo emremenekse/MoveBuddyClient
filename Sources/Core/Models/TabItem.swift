@@ -9,13 +9,13 @@ enum TabItem: Int, CaseIterable {
     var title: String {
         switch self {
         case .dashboard:
-            return "Ana Sayfa"
+            return "tab.dashboard".localized
         case .exercises:
-            return "Egzersizler"
+            return "tab.exercises".localized
         case .statistics:
-            return "İstatistikler"
+            return "tab.statistics".localized
         case .profile:
-            return "Profil"
+            return "tab.profile".localized
         }
     }
     

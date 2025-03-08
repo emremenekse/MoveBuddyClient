@@ -74,7 +74,7 @@ final class InitialSetupViewModel: ObservableObject {
             errorMessage = nil
             
         } catch {
-            errorMessage = "Bilgiler kaydedilirken bir hata oluştu"
+            errorMessage = "setup.error.save".localized
         }
     }
     
@@ -87,7 +87,7 @@ final class InitialSetupViewModel: ObservableObject {
                 workSchedule = savedInfo.workSchedule.workDays
             }
         } catch {
-            errorMessage = "Kayıtlı bilgiler yüklenirken bir hata oluştu"
+            errorMessage = "setup.error.load".localized
         }
     }
 } 

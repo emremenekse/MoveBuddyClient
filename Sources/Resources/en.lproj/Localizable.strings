@@ -50,4 +50,126 @@
 "profile.language.changed.title" = "Language Changed";
 "profile.language.changed.message" = "You need to restart the app for the language change to take full effect.";
 
+// Exercise Categories
+"exercise.category.stretching" = "Stretching";
+"exercise.category.light.fitness" = "Light Fitness";
+"exercise.category.posture.circulation" = "Posture / Circulation";
+"exercise.category.eye.care" = "Eye Care";
+
+// Exercise Environments
+"exercise.environment.office" = "Office";
+"exercise.environment.home" = "Home";
+"exercise.environment.coworking" = "Co-Working";
+
+// Exercise Difficulty
+"exercise.difficulty.beginner" = "Beginner";
+"exercise.difficulty.intermediate" = "Intermediate";
+"exercise.difficulty.advanced" = "Advanced";
+
+// Exercise Duration
+"exercise.duration.minutes" = "%d min";
+
+// Exercise 1
+"exercise.1.name" = "Neck Rotation";
+"exercise.1.description" = "A basic exercise to stretch and relax neck muscles.";
+"exercise.1.step.1" = "Sit up straight";
+"exercise.1.step.2" = "Slowly turn your head to the right";
+"exercise.1.step.3" = "Hold for 5 seconds";
+"exercise.1.step.4" = "Return your head to the center";
+"exercise.1.step.5" = "Repeat the same movement to the left";
+
+// Exercise 2
+"exercise.2.name" = "Eye Rest";
+"exercise.2.description" = "A relaxing exercise for eyes tired from looking at the screen for a long time.";
+"exercise.2.step.1" = "Look away from the screen";
+"exercise.2.step.2" = "Apply the 20-20-20 rule";
+"exercise.2.step.3" = "Rest your eyes without rubbing them";
+
+// Exercise 3
+"exercise.3.name" = "Desk Squats";
+"exercise.3.description" = "Simple exercise to reduce sitting time and increase blood circulation.";
+"exercise.3.step.1" = "Stand up";
+"exercise.3.step.2" = "Squat slightly";
+"exercise.3.step.3" = "Do 5 repetitions";
+
+// Weekdays
+"weekday.monday" = "Monday";
+"weekday.tuesday" = "Tuesday";
+"weekday.wednesday" = "Wednesday";
+"weekday.thursday" = "Thursday";
+"weekday.friday" = "Friday";
+"weekday.saturday" = "Saturday";
+"weekday.sunday" = "Sunday";
+
+// Workspace Types
+"workspace.office" = "Office";
+"workspace.home" = "Home";
+"workspace.coworking" = "Co-Working Space";
+
+// Exercise Types
+"exercise.type.stretching" = "Stretching";
+"exercise.type.light.fitness" = "Light Fitness";
+"exercise.type.posture" = "Posture/Circulation";
+"exercise.type.eye.exercises" = "Eye Exercises";
+
+// Initial Setup
+"setup.welcome" = "Welcome!";
+"setup.workspace" = "Workspace";
+"setup.exercise.preference" = "Exercise Preference";
+"setup.work.schedule" = "Work Schedule";
+"setup.start" = "Start";
+
+// Error Messages
+"setup.error.save" = "An error occurred while saving information";
+"setup.error.load" = "An error occurred while loading saved information";
+"profile.error.load" = "User information could not be loaded";
+
+// Statistics
+"statistics.title" = "Statistics";
+"statistics.your.statistics" = "Your Statistics";
+"statistics.welcome.back" = "Welcome back!";
+"statistics.weekly.stats" = "Weekly Stats";
+"statistics.all.time.stats" = "All-Time Stats";
+"statistics.weekly.leaderboard" = "Weekly Leaderboard";
+"statistics.most.completions" = "Most Completions";
+"statistics.longest.duration" = "Longest Duration";
+"statistics.popular.exercises" = "Popular Exercises";
+"statistics.number.of.completions" = "Number of completions";
+"statistics.all.time.leaderboard" = "All-Time Leaderboard";
+"statistics.exercises" = "Exercises";
+"statistics.duration" = "Duration";
+"statistics.top.5" = "Top 5";
+"statistics.anonymous" = "Anonymous";
+"statistics.completions" = "completions";
+
+// Exercises
+"exercises.title" = "Exercises";
+"exercises.search" = "Search Exercises";
+"exercises.not.found" = "No Exercises Found";
+"exercises.no.match" = "No exercises match the selected filters.";
+"exercises.steps" = "Steps";
+"exercises.properties" = "Properties";
+"exercises.reminder.interval" = "Reminder Interval";
+"exercises.cancel" = "Cancel";
+
+// Tab Items
+"tab.dashboard" = "Home";
+"tab.exercises" = "Exercises";
+"tab.statistics" = "Statistics";
+"tab.profile" = "Profile";
+
+// App
+"app.title" = "MoveBuddy";
+"settings.notifications" = "Notification Settings";
+"auth.sign.out" = "Sign Out";
+
+// Onboarding
+"onboarding.welcome.title" = "Welcome";
+"onboarding.welcome.description" = "Take a step towards a more active life with MoveBuddy.";
+"onboarding.personalized.title" = "Personalized Recommendations";
+"onboarding.personalized.description" = "Stay active with personalized movement suggestions and reminders.";
+"onboarding.video.title" = "Video Guides";
+"onboarding.video.description" = "Perform movements correctly with detailed video guides.";
+"onboarding.start" = "Get Started";
+
 // Add more strings as needed

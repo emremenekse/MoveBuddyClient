@@ -8,25 +8,25 @@ struct MainTabView: View {
         TabView(selection: $selectedTab) {
             DashboardView()
                 .tabItem {
-                    Label("Ana Sayfa", systemImage: "house.fill")
+                    Label("tab.dashboard".localized, systemImage: "house.fill")
                 }
                 .tag(0)
             
             ExercisesView()
                 .tabItem {
-                    Label("Egzersizler", systemImage: "figure.walk")
+                    Label("tab.exercises".localized, systemImage: "figure.walk")
                 }
                 .tag(1)
             
             StatisticsView()
                 .tabItem {
-                    Label("İstatistikler", systemImage: "chart.bar.fill")
+                    Label("tab.statistics".localized, systemImage: "chart.bar.fill")
                 }
                 .tag(2)
             
             ProfileView()
                 .tabItem {
-                    Label("Profil", systemImage: "person.fill")
+                    Label("tab.profile".localized, systemImage: "person.fill")
                 }
                 .tag(3)
         }

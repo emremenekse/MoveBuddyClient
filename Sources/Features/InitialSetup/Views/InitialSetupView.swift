@@ -9,7 +9,7 @@ struct InitialSetupView: View {
             VStack(spacing: 32) {
                 // Header
                 VStack(spacing: 8) {
-                    Text("Hoş Geldiniz!")
+                    Text("setup.welcome".localized)
                         .font(.title)
                         .fontWeight(.bold)
                     
@@ -31,12 +31,12 @@ struct InitialSetupView: View {
                     
                     // Çalışma Ortamı
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Çalışma Ortamı")
+                        Text("setup.workspace".localized)
                             .font(.headline)
                         
                         ForEach(WorkspaceType.allCases, id: \.self) { type in
                             SelectableButton(
-                                title: type.rawValue,
+                                title: type.title,
                                 isSelected: viewModel.selectedWorkspaceTypes.contains(type)
                             ) {
                                 viewModel.toggleWorkspaceType(type)
@@ -46,12 +46,12 @@ struct InitialSetupView: View {
                     
                     // Hareket Tercihi
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Hareket Tercihi")
+                        Text("setup.exercise.preference".localized)
                             .font(.headline)
                         
                         ForEach(ExerciseType.allCases, id: \.self) { type in
                             SelectableButton(
-                                title: type.rawValue,
+                                title: type.title,
                                 isSelected: viewModel.selectedExerciseTypes.contains(type)
                             ) {
                                 viewModel.toggleExerciseType(type)
@@ -61,13 +61,13 @@ struct InitialSetupView: View {
                     
                     // Çalışma Saatleri
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Çalışma Saatleri")
+                        Text("setup.work.schedule".localized)
                             .font(.headline)
                         
                         ForEach(WeekDay.allCases, id: \.self) { day in
                             if let workDay = viewModel.workSchedule[day] {
                                 HStack {
-                                    Text(day.rawValue)
+                                    Text(day.title)
                                         .foregroundColor(.primary)
                                     Spacer()
                                     Text("\(workDay.startHour):00 - \(workDay.endHour):00")
@@ -108,7 +108,7 @@ struct InitialSetupView: View {
                     viewModel.saveUserInfo()
                 } label: {
                     if viewModel.canProceed {
-                        Text("Başla")
+                        Text("setup.start".localized)
                             .font(.headline)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
@@ -116,7 +116,7 @@ struct InitialSetupView: View {
                             .background(Color.blue)
                             .cornerRadius(12)
                     } else {
-                        Text("Başla")
+                        Text("setup.start".localized)
                             .font(.headline)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)

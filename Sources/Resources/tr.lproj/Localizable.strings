@@ -50,4 +50,126 @@
 "profile.language.changed.title" = "Dil Değiştirildi";
 "profile.language.changed.message" = "Dil değişikliğinin tam olarak etkili olması için uygulamayı yeniden başlatmanız gerekir.";
 
+// Exercise Categories
+"exercise.category.stretching" = "Esneme";
+"exercise.category.light.fitness" = "Hafif Fitness";
+"exercise.category.posture.circulation" = "Dolaşım / Postür";
+"exercise.category.eye.care" = "Göz Egzersizi";
+
+// Exercise Environments
+"exercise.environment.office" = "Ofis";
+"exercise.environment.home" = "Ev";
+"exercise.environment.coworking" = "Co-Working";
+
+// Exercise Difficulty
+"exercise.difficulty.beginner" = "Başlangıç";
+"exercise.difficulty.intermediate" = "Orta";
+"exercise.difficulty.advanced" = "İleri";
+
+// Exercise Duration
+"exercise.duration.minutes" = "%d dk";
+
+// Exercise 1
+"exercise.1.name" = "Boyun Rotasyonu";
+"exercise.1.description" = "Boyun kaslarını esnetmek ve rahatlatmak için yapılan temel bir egzersiz.";
+"exercise.1.step.1" = "Dik bir şekilde oturun";
+"exercise.1.step.2" = "Başınızı yavaşça sağa çevirin";
+"exercise.1.step.3" = "5 saniye bekleyin";
+"exercise.1.step.4" = "Başınızı merkeze getirin";
+"exercise.1.step.5" = "Aynı hareketi sola tekrarlayın";
+
+// Exercise 2
+"exercise.2.name" = "Göz Dinlendirme";
+"exercise.2.description" = "Ekrana uzun süre bakmaktan yorulan gözler için rahatlatıcı egzersiz.";
+"exercise.2.step.1" = "Ekrandan uzağa bakın";
+"exercise.2.step.2" = "20-20-20 kuralını uygulayın";
+"exercise.2.step.3" = "Gözlerinizi ovuşturmadan dinlendirin";
+
+// Exercise 3
+"exercise.3.name" = "Masa Başı Squats";
+"exercise.3.description" = "Oturma süresini azaltmak ve kan dolaşımını artırmak için basit egzersiz.";
+"exercise.3.step.1" = "Ayağa kalkın";
+"exercise.3.step.2" = "Hafifçe çömelin";
+"exercise.3.step.3" = "5 tekrar yapın";
+
+// Weekdays
+"weekday.monday" = "Pazartesi";
+"weekday.tuesday" = "Salı";
+"weekday.wednesday" = "Çarşamba";
+"weekday.thursday" = "Perşembe";
+"weekday.friday" = "Cuma";
+"weekday.saturday" = "Cumartesi";
+"weekday.sunday" = "Pazar";
+
+// Workspace Types
+"workspace.office" = "Ofis";
+"workspace.home" = "Ev";
+"workspace.coworking" = "CoWorking Alan";
+
+// Exercise Types
+"exercise.type.stretching" = "Esneme";
+"exercise.type.light.fitness" = "Hafif Fitness";
+"exercise.type.posture" = "Dolaşım/Postür";
+"exercise.type.eye.exercises" = "Göz Egzersizleri";
+
+// Initial Setup
+"setup.welcome" = "Hoş Geldiniz!";
+"setup.workspace" = "Çalışma Ortamı";
+"setup.exercise.preference" = "Hareket Tercihi";
+"setup.work.schedule" = "Çalışma Saatleri";
+"setup.start" = "Başla";
+
+// Error Messages
+"setup.error.save" = "Bilgiler kaydedilirken bir hata oluştu";
+"setup.error.load" = "Kayıtlı bilgiler yüklenirken bir hata oluştu";
+"profile.error.load" = "Kullanıcı bilgileri yüklenemedi";
+
+// Statistics
+"statistics.title" = "İstatistikler";
+"statistics.your.statistics" = "İstatistikleriniz";
+"statistics.welcome.back" = "Tekrar hoş geldiniz!";
+"statistics.weekly.stats" = "Haftalık İstatistikler";
+"statistics.all.time.stats" = "Tüm Zamanlar İstatistikleri";
+"statistics.weekly.leaderboard" = "Haftalık Liderlik Tablosu";
+"statistics.most.completions" = "En Çok Tamamlama";
+"statistics.longest.duration" = "En Uzun Süre";
+"statistics.popular.exercises" = "Popüler Egzersizler";
+"statistics.number.of.completions" = "Tamamlama sayısı";
+"statistics.all.time.leaderboard" = "Tüm Zamanlar Liderlik Tablosu";
+"statistics.exercises" = "Egzersizler";
+"statistics.duration" = "Süre";
+"statistics.top.5" = "En İyi 5";
+"statistics.anonymous" = "Anonim";
+"statistics.completions" = "tamamlama";
+
+// Exercises
+"exercises.title" = "Egzersizler";
+"exercises.search" = "Egzersiz Ara";
+"exercises.not.found" = "Egzersiz Bulunamadı";
+"exercises.no.match" = "Seçili filtrelerle eşleşen egzersiz bulunamadı.";
+"exercises.steps" = "Adımlar";
+"exercises.properties" = "Özellikler";
+"exercises.reminder.interval" = "Hatırlatma Aralığı";
+"exercises.cancel" = "Vazgeç";
+
+// Tab Items
+"tab.dashboard" = "Ana Sayfa";
+"tab.exercises" = "Egzersizler";
+"tab.statistics" = "İstatistikler";
+"tab.profile" = "Profil";
+
+// App
+"app.title" = "MoveBuddy";
+"settings.notifications" = "Bildirim Ayarları";
+"auth.sign.out" = "Çıkış Yap";
+
+// Onboarding
+"onboarding.welcome.title" = "Hoş Geldiniz";
+"onboarding.welcome.description" = "MoveBuddy ile daha aktif bir yaşama adım atın.";
+"onboarding.personalized.title" = "Kişiselleştirilmiş Öneriler";
+"onboarding.personalized.description" = "Size özel hareket önerileri ve hatırlatıcılar ile aktif kalın.";
+"onboarding.video.title" = "Video Rehberler";
+"onboarding.video.description" = "Detaylı video rehberler ile hareketleri doğru şekilde yapın.";
+"onboarding.start" = "Başla";
+
 // Add more strings as needed

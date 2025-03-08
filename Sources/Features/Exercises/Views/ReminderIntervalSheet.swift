@@ -21,11 +21,11 @@ struct ReminderIntervalSheet: View {
                     }
                 }
             }
-            .navigationTitle("Hatırlatma Aralığı")
+            .navigationTitle("exercises.reminder.interval".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Vazgeç") {
+                    Button("exercises.cancel".localized) {
                         dismiss()
                     }
                 }

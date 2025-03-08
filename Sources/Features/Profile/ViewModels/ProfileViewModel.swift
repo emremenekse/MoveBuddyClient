@@ -123,7 +123,7 @@ final class ProfileViewModel: ObservableObject {
     private func loadUserInfo() async {
         guard let userInfo = try? await initialSetupService.getUserInfo() else {
             showError = true
-            errorMessage = "Kullanıcı bilgileri yüklenemedi"
+            errorMessage = "profile.error.load".localized
             return
         }
         

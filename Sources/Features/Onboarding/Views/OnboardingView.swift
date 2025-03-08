@@ -25,7 +25,7 @@ struct OnboardingView: View {
                         appViewModel.completeOnboarding()
                         viewModel.startApp()
                     }) {
-                        Text("Başla")
+                        Text("onboarding.start".localized)
                             .font(.headline)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)

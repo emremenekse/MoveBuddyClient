@@ -35,7 +35,7 @@ struct ProfileView: View {
                 // MARK: - Workspace
                 Section("profile.workspace".localized) {
                     ForEach(WorkspaceType.allCases, id: \.self) { type in
-                        Toggle(type.rawValue, isOn: Binding(
+                        Toggle(type.title, isOn: Binding(
                             get: { viewModel.workspaceTypes.contains(type) },
                             set: { isSelected in
                                 if isSelected {
@@ -51,7 +51,7 @@ struct ProfileView: View {
                 // MARK: - Exercise Preferences
                 Section("profile.exercise.preferences".localized) {
                     ForEach(ExerciseType.allCases, id: \.self) { type in
-                        Toggle(type.rawValue, isOn: Binding(
+                        Toggle(type.title, isOn: Binding(
                             get: { viewModel.exercisePreferences.contains(type) },
                             set: { isSelected in
                                 if isSelected {
@@ -68,7 +68,7 @@ struct ProfileView: View {
                 Section("profile.work.schedule".localized) {
                     ForEach(WeekDay.allCases, id: \.self) { day in
                         HStack {
-                            Text(day.rawValue)
+                            Text(day.title)
                             Spacer()
                             if let workDay = viewModel.workSchedule.workDays[day] {
                                 HStack(spacing: 8) {

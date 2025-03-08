@@ -1,19 +1,19 @@
 import Foundation
 
 enum ExerciseCategory: String, Codable, CaseIterable, Identifiable {
-    case stretching       // Esneme
-    case lightFitness     // Hafif fitness
-    case postureCirculation  // Dolaşım / Postür
-    case eyeCare          // Göz egzersizi
+    case stretching
+    case lightFitness
+    case postureCirculation
+    case eyeCare
     
     var id: String { rawValue }
     
     var title: String {
         switch self {
-        case .stretching: return "Esneme"
-        case .lightFitness: return "Hafif Fitness"
-        case .postureCirculation: return "Dolaşım / Postür"
-        case .eyeCare: return "Göz Egzersizi"
+        case .stretching: return "exercise.category.stretching".localized
+        case .lightFitness: return "exercise.category.light.fitness".localized
+        case .postureCirculation: return "exercise.category.posture.circulation".localized
+        case .eyeCare: return "exercise.category.eye.care".localized
         }
     }
     
@@ -36,9 +36,9 @@ enum ExerciseEnvironment: String, Codable, CaseIterable, Identifiable {
     
     var title: String {
         switch self {
-        case .office: return "Ofis"
-        case .home: return "Ev"
-        case .coWorking: return "Co-Working"
+        case .office: return "exercise.environment.office".localized
+        case .home: return "exercise.environment.home".localized
+        case .coWorking: return "exercise.environment.coworking".localized
         }
     }
     
@@ -60,18 +60,18 @@ enum Difficulty: String, Codable, CaseIterable, Identifiable {
     
     var title: String {
         switch self {
-        case .beginner: return "Başlangıç"
-        case .intermediate: return "Orta"
-        case .advanced: return "İleri"
+        case .beginner: return "exercise.difficulty.beginner".localized
+        case .intermediate: return "exercise.difficulty.intermediate".localized
+        case .advanced: return "exercise.difficulty.advanced".localized
         }
     }
 }
 
 struct Exercise: Identifiable, Codable {
     let id: String
-    let name: String
-    let description: String
-    let steps: [String]?
+    let nameKey: String  // Localization key for name
+    let descriptionKey: String  // Localization key for description
+    let stepKeys: [String]?  // Localization keys for steps
     let categories: [ExerciseCategory]
     let environments: [ExerciseEnvironment]
     let durationSeconds: Int?
@@ -79,9 +79,27 @@ struct Exercise: Identifiable, Codable {
     let videoURL: URL?
     let imageURL: URL?
     
+    // Localized properties (not stored in Firestore)
+    var name: String {
+        return nameKey.localized
+    }
+    
+    var description: String {
+        return descriptionKey.localized
+    }
+    
+    var steps: [String]? {
+        return stepKeys?.map { $0.localized }
+    }
+    
     var formattedDuration: String? {
         guard let seconds = durationSeconds else { return nil }
-        return "\(seconds / 60) dk"
+        return "exercise.duration.minutes".localized(with: seconds / 60)
+    }
+    
+    // Custom Codable implementation to ensure proper encoding for Firestore
+    enum CodingKeys: String, CodingKey {
+        case id, nameKey, descriptionKey, stepKeys, categories, environments, durationSeconds, difficulty, videoURL, imageURL
     }
 }
 
@@ -90,14 +108,14 @@ extension Exercise {
         [
             Exercise(
                 id: "1",
-                name: "Boyun Rotasyonu",
-                description: "Boyun kaslarını esnetmek ve rahatlatmak için yapılan temel bir egzersiz.",
-                steps: [
-                    "Dik bir şekilde oturun",
-                    "Başınızı yavaşça sağa çevirin",
-                    "5 saniye bekleyin",
-                    "Başınızı merkeze getirin",
-                    "Aynı hareketi sola tekrarlayın"
+                nameKey: "exercise.1.name",
+                descriptionKey: "exercise.1.description",
+                stepKeys: [
+                    "exercise.1.step.1",
+                    "exercise.1.step.2",
+                    "exercise.1.step.3",
+                    "exercise.1.step.4",
+                    "exercise.1.step.5"
                 ],
                 categories: [.stretching, .postureCirculation],
                 environments: [.office, .home, .coWorking],
@@ -108,12 +126,12 @@ extension Exercise {
             ),
             Exercise(
                 id: "2",
-                name: "Göz Dinlendirme",
-                description: "Ekrana uzun süre bakmaktan yorulan gözler için rahatlatıcı egzersiz.",
-                steps: [
-                    "Ekrandan uzağa bakın",
-                    "20-20-20 kuralını uygulayın",
-                    "Gözlerinizi ovuşturmadan dinlendirin"
+                nameKey: "exercise.2.name",
+                descriptionKey: "exercise.2.description",
+                stepKeys: [
+                    "exercise.2.step.1",
+                    "exercise.2.step.2",
+                    "exercise.2.step.3"
                 ],
                 categories: [.eyeCare],
                 environments: [.office, .home, .coWorking],
@@ -124,12 +142,12 @@ extension Exercise {
             ),
             Exercise(
                 id: "3",
-                name: "Masa Başı Squats",
-                description: "Oturma süresini azaltmak ve kan dolaşımını artırmak için basit egzersiz.",
-                steps: [
-                    "Ayağa kalkın",
-                    "Hafifçe çömelin",
-                    "5 tekrar yapın"
+                nameKey: "exercise.3.name",
+                descriptionKey: "exercise.3.description",
+                stepKeys: [
+                    "exercise.3.step.1",
+                    "exercise.3.step.2",
+                    "exercise.3.step.3"
                 ],
                 categories: [.lightFitness],
                 environments: [.office, .coWorking],
