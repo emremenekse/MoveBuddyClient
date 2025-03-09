@@ -24,31 +24,30 @@ final class ExercisesService {
         error = nil
         
         do {
-            print("Fetching exercises from Firestore...")
+            // Fetching exercises from Firestore
             let snapshot = try await db.collection(exercisesCollection).getDocuments()
-            
             // Eğer veri yoksa dummy dataları yükle
             if snapshot.documents.isEmpty {
-                print("No exercises found in Firestore, loading dummy data...")
+                // No exercises found in Firestore, loading dummy data
                 try await loadDummyData()
                 // Dummy dataları yükledikten sonra tekrar fetch et
-                print("Fetching exercises again after loading dummy data...")
+                // Fetching exercises again after loading dummy data
                 let newSnapshot = try await db.collection(exercisesCollection).getDocuments()
                 
                 if newSnapshot.documents.isEmpty {
-                    print("Still no exercises found after loading dummy data!")
+                    // Still no exercises found after loading dummy data
                     // Fallback to dummy data if Firestore still fails
                     exercises = Exercise.dummyData
                 } else {
-                    print("Found \(newSnapshot.documents.count) exercises after loading dummy data")
+                    // Found exercises after loading dummy data
                     exercises = try convertSnapshotToExercises(newSnapshot)
                 }
             } else {
-                print("Found \(snapshot.documents.count) existing exercises in Firestore")
+                // Found existing exercises in Firestore
                 exercises = try convertSnapshotToExercises(snapshot)
             }
         } catch {
-            print("Error fetching exercises: \(error)")
+            // Error occurred while fetching exercises
             self.error = error
             // Fallback to dummy data if there's an error
             exercises = Exercise.dummyData
@@ -68,7 +67,7 @@ final class ExercisesService {
                   let descriptionKey = data["descriptionKey"] as? String,
                   let categoryStrings = data["categories"] as? [String],
                   let environmentStrings = data["environments"] as? [String] else {
-                print("Missing required fields for document \(document.documentID)")
+                // Missing required fields for document
                 return nil
             }
             
@@ -94,7 +93,6 @@ final class ExercisesService {
             if let imageURLString = data["imageURL"] as? String {
                 imageURL = URL(string: imageURLString)
             }
-            
             return Exercise(
                 id: id,
                 nameKey: nameKey,
@@ -113,37 +111,16 @@ final class ExercisesService {
     // MARK: - Private Methods
     private func loadDummyData() async throws {
         
-        // Print exercise data for debugging
-        print("\n==== EXERCISE DATA TO BE LOADED TO FIRESTORE ====")
-        for exercise in Exercise.dummyData {
-            print("\nExercise ID: \(exercise.id)")
-            print("Name: \(exercise.name) (Key: \(exercise.nameKey))")
-            print("Description: \(exercise.description) (Key: \(exercise.descriptionKey))")
-            if let steps = exercise.steps, let stepKeys = exercise.stepKeys {
-                print("Steps:")
-                for (index, (step, key)) in zip(steps, stepKeys).enumerated() {
-                    print("  \(index + 1). \(step) (Key: \(key))")
-                }
-            }
-            print("Categories: \(exercise.categories.map { $0.title }.joined(separator: ", "))")
-            print("Environments: \(exercise.environments.map { $0.title }.joined(separator: ", "))")
-            if let difficulty = exercise.difficulty {
-                print("Difficulty: \(difficulty.title)")
-            }
-            if let duration = exercise.formattedDuration {
-                print("Duration: \(duration)")
-            }
-        }
-        print("==== END OF EXERCISE DATA ====\n")
+        // Exercise data debug information removed
         
         do {
-            print("Attempting to save exercise data to Firestore...")
+            // Attempting to save exercise data to Firestore
             
             // Batch write kullanarak tüm dummy dataları tek seferde yükle
             let batch = db.batch()
             
             for exercise in Exercise.dummyData {
-                print("Preparing document for exercise: \(exercise.id)")
+                // Preparing document for exercise
                 let document = db.collection(exercisesCollection).document(exercise.id)
                 
                 // Create a dictionary manually to ensure proper encoding
@@ -163,11 +140,11 @@ final class ExercisesService {
                 batch.setData(data, forDocument: document)
             }
             
-            print("Committing batch to Firestore...")
+            // Committing batch to Firestore
             try await batch.commit()
-            print("Successfully saved exercise data to Firestore!")
+            // Successfully saved exercise data
         } catch {
-            print("Error saving exercise data to Firestore: \(error)")
+            // Error saving exercise data to Firestore
             throw error
         }
     }

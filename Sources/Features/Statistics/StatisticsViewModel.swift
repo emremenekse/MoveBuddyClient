@@ -188,7 +188,7 @@ final class StatisticsViewModel: ObservableObject {
                 self.userNickname = formatNickname(userData.nickname)
             }
         } catch {
-            print("❌ Error fetching user nickname: \(error.localizedDescription)")
+            // Error handling for user nickname fetch
             self.userNickname = "Anonymous"
         }
     }
@@ -211,62 +211,29 @@ final class StatisticsViewModel: ObservableObject {
             let snapshot = try await db.collection("leaderboardStats").document("latest").getDocument()
             
             guard let data = snapshot.data() else {
-                print("❌ No data found in leaderboardStats/latest document")
+                // No data found in leaderboardStats
                 return
             }
             
             if let stats = LeaderboardStats(from: data) {
                 self.leaderboardStats = stats
                 
-                print("\n📊 Leaderboard Stats:")
-                print("-------------------")
-                print("Last Updated: \(stats.lastUpdated)")
-                print("Total Completions: \(stats.totalCompletions)")
-                
-                print("\n🏆 All-Time Leaderboard:")
-                for entry in stats.allTimeLeaderboard {
-                    print("\(entry.rank). \(entry.nickname): \(entry.totalCompletions) total completions")
-                }
-                
-                print("\n⏱ All-Time Leaderboard By Duration:")
-                for entry in stats.allTimeLeaderboardByDuration {
-                    print("\(entry.rank). \(entry.nickname): \(entry.totalDurationFormatted ?? "0m") total time")
-                }
-                
-                print("\n🏅 Weekly Leaderboard:")
-                for entry in stats.weeklyLeaderboard {
-                    print("\(entry.rank). \(entry.nickname): \(entry.totalCompletions) completions this week")
-                }
-                
-                print("\n⌛️ Weekly Leaderboard By Duration:")
-                for entry in stats.weeklyLeaderboardByDuration {
-                    print("\(entry.rank). \(entry.nickname): \(entry.totalDurationFormatted ?? "0m") this week")
-                }
-                
-                print("\n📈 Popular Exercises:")
-                for exercise in stats.popularExercises {
-                    print("\(exercise.rank). \(exercise.name): \(exercise.completions) completions")
-                }
-                
-                print("\n📋 Category Breakdown:")
-                for category in stats.categoryBreakdown {
-                    print("Exercise ID: \(category.exerciseId), Completions: \(category.completionCount)")
-                }
+                // Successfully parsed leaderboard stats
             } else {
-                print("❌ Failed to parse leaderboard stats")
+                // Failed to parse leaderboard stats
             }
         } catch {
-            print("❌ Error fetching leaderboard stats: \(error.localizedDescription)")
+            // Error handling for leaderboard stats fetch
         }
     }
     
     func fetchUserCompletedExercises() async {
         do {
             guard let userId = try? KeychainManager.shared.getUserId() else {
-                print("❌ Error: UserId not found")
+                // UserId not found
                 return
             }
-            print("👤 User ID: \(userId)")
+            // Fetching completions for user
             let userCompletionsRef = db.collection("completedExercises")
                 .document(userId)
                 .collection("completions")
@@ -281,32 +248,10 @@ final class StatisticsViewModel: ObservableObject {
             let lastWeekDate = getLastWeekDate()
             self.weeklyCompletedExercises = allExercises.filter { $0.completedAt >= lastWeekDate }
             
-            // Print All-Time Exercises
-            print("\n🏆 All-Time Completed Exercises:")
-            print("--------------------------------")
-            for exercise in allTimeCompletedExercises {
-                printExerciseDetails(exercise)
-            }
-            print("\nTotal all-time completed exercises: \(allTimeCompletedExercises.count)")
-            
-            // Print Weekly Exercises
-            print("\n📈 Weekly Completed Exercises:")
-            print("------------------------------")
-            for exercise in weeklyCompletedExercises {
-                printExerciseDetails(exercise)
-            }
-            print("\nTotal weekly completed exercises: \(weeklyCompletedExercises.count)")
+            // Successfully fetched user completed exercises
             
         } catch {
-            print("❌ Error fetching completed exercises: \(error.localizedDescription)")
+            // Error handling for completed exercises fetch
         }
-    }
-    
-    private func printExerciseDetails(_ exercise: UserCompletedExercise) {
-        print("\n🏋️ Exercise: \(exercise.exerciseName)")
-        print("   📅 Completed: \(exercise.completedAt)")
-        print("   ⏱️ Duration: \(exercise.duration) seconds")
-        print("   🎯 Difficulty: \(exercise.difficulty)")
-        print("   🎟️ Categories: \(exercise.categories.joined(separator: ", "))")
     }
 }
