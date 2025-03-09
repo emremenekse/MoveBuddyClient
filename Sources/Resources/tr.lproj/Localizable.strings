@@ -173,3 +173,11 @@
 "onboarding.start" = "Başla";
 
 // Add more strings as needed
+
+// Notifications
+"notification.duration.minutes" = "dakika";
+"notification.body.time" = "Sağlıklı bir yaşam için egzersiz zamanı!";
+"notification.body.complete" = "Egzersizi tamamladığınızda 'Tamamla' butonuna basın";
+"notification.body.skip" = "Şu an müsait değilseniz 'Atla' butonunu kullanın";
+"notification.action.complete" = "Tamamla";
+"notification.action.skip" = "Atla";

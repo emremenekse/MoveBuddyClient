@@ -173,3 +173,11 @@
 "onboarding.start" = "Get Started";
 
 // Add more strings as needed
+
+// Notifications
+"notification.duration.minutes" = "minutes";
+"notification.body.time" = "Time for exercise for a healthy life!";
+"notification.body.complete" = "Press the 'Complete' button when you finish the exercise";
+"notification.body.skip" = "If you're not available right now, use the 'Skip' button";
+"notification.action.complete" = "Complete";
+"notification.action.skip" = "Skip";

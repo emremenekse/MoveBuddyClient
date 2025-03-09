@@ -40,14 +40,14 @@ final class ExerciseNotificationService: ExerciseNotificationServiceProtocol {
         content.title = "\(emoji) \(exercise.name)"
         
         // Alt başlık olarak süre
-        content.subtitle = "⏱️ \(exercise.duration) dakika"
+        content.subtitle = "⏱️ \(exercise.duration) \("notification.duration.minutes".localized)"
         
         // Ana mesaj
         content.body = """
-        Sağlıklı bir yaşam için egzersiz zamanı! 🎯
+        \("notification.body.time".localized) 🎯
         
-        💪 Egzersizi tamamladığınızda "Tamamlandı" butonuna basın
-        🔄 Şu an müsait değilseniz "Atla" butonunu kullanın
+        💪 \("notification.body.complete".localized)
+        🔄 \("notification.body.skip".localized)
         """
         
         content.sound = .default
@@ -60,13 +60,13 @@ final class ExerciseNotificationService: ExerciseNotificationServiceProtocol {
         // Bildirim aksiyonlarını ekle
         let completeAction = UNNotificationAction(
             identifier: ExerciseAction.complete.rawValue,
-            title: "Tamamla",
+            title: "notification.action.complete".localized,
             options: .foreground
         )
         
         let skipAction = UNNotificationAction(
             identifier: ExerciseAction.skip.rawValue,
-            title: "Atla",
+            title: "notification.action.skip".localized,
             options: .foreground
         )
         

@@ -16,13 +16,13 @@ final class ExerciseNotificationManager: NSObject, UNUserNotificationCenterDeleg
     private func configureNotificationCategories() {
         let completeAction = UNNotificationAction(
             identifier: ExerciseAction.complete.rawValue,
-            title: "Tamamlandı",
+            title: "notification.action.complete".localized,
             options: .foreground
         )
         
         let skipAction = UNNotificationAction(
             identifier: ExerciseAction.skip.rawValue,
-            title: "Atla",
+            title: "notification.action.skip".localized,
             options: .foreground
         )
         
