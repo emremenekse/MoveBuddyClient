@@ -126,7 +126,7 @@ struct StatisticsView: View {
             ForEach(viewModel.leaderboardStats?.popularExercises.prefix(5) ?? [], id: \.id) { exercise in
                 VStack(spacing: 8) {
                     HStack {
-                        Text(exercise.name)
+                        Text(exercise.name.localized)
                             .font(.system(size: 16, weight: .medium))
                             .lineLimit(1)
                         

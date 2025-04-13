@@ -52,6 +52,12 @@ final class DashboardViewModel: ObservableObject, UserExercisesServiceDelegate {
     private var allUpcomingExercises: [(Exercise, Date)] = []
     private var allUpcomingExercisesForTodayTarget: [(Exercise, Date)] = []
     
+    // Egzersiz zamanlarının hesaplanma durumunu kontrol etmek için flag
+    private var exerciseTimesCalculated = false
+    
+    // Son seçili egzersiz ID'lerini saklamak için
+    private var lastSelectedExerciseIds: [String] = []
+    
     init(initialSetupService: InitialSetupService = .shared,
          exercisesService: ExercisesService = .shared,
          userExercisesService: UserExercisesService = .shared) {
@@ -100,38 +106,83 @@ final class DashboardViewModel: ObservableObject, UserExercisesServiceDelegate {
         // Toplam dakikayı güncelle
         totalMinutes = completedMinutesToday
         
-        // Seçili egzersizlerin toplam süresi
-        // totalMinutes = selectedExercises.compactMap { selectedExercise in
-        //     exercises.first { $0.id == selectedExercise.exerciseId }?.durationSeconds
-        // }.reduce(0) { $0 + ($1 / 60) }
-        
         // Şu anki zamanı al
         let now = Date()
         
-        // Tüm yaklaşan egzersizleri temizle
-        allUpcomingExercises.removeAll()
-        allUpcomingExercisesForTodayTarget.removeAll()
+        // Seçili egzersizlerin ID'lerini al
+        let currentSelectedExerciseIds = selectedExercises.map { $0.exerciseId }
         
-        // Her seçili egzersiz için yaklaşan zamanları hesapla
-        for selectedExercise in selectedExercises {
-            guard let exercise = exercises.first(where: { $0.id == selectedExercise.exerciseId }) else {
-                continue
+        // Egzersiz zamanlarını sadece aşağıdaki durumlarda yeniden hesapla:
+        // 1. Hiç hesaplanmamışsa (ilk çağrı)
+        // 2. Seçili egzersizler değişmişse
+        let shouldRecalculateTimes = !exerciseTimesCalculated || 
+                                     currentSelectedExerciseIds != lastSelectedExerciseIds
+        
+        if shouldRecalculateTimes {
+            print("Egzersiz zamanları yeniden hesaplanıyor...")
+            
+            // Tüm yaklaşan egzersizleri temizle
+            allUpcomingExercises.removeAll()
+            allUpcomingExercisesForTodayTarget.removeAll()
+            
+            // Her seçili egzersiz için yaklaşan zamanları hesapla
+            for selectedExercise in selectedExercises {
+                guard let exercise = exercises.first(where: { $0.id == selectedExercise.exerciseId }) else {
+                    continue
+                }
+                
+                // Bildirimler için daha uzun bir Süre al (örn: 1 hafta)
+                let nextTimes = selectedExercise.reminderInterval.nextOccurrences(from: now, workSchedule: schedule, limit: 50)
+                let exerciseTimes = nextTimes.map { (exercise, $0) }
+                allUpcomingExercises.append(contentsOf: exerciseTimes)
+                
+                let nextTimesForTodayTarget = selectedExercise.reminderInterval.nextOccurrences(from: now, workSchedule: schedule, limit: 5000)
+                let exerciseTimesForTodayTarget = nextTimesForTodayTarget.map { (exercise, $0) }
+                allUpcomingExercisesForTodayTarget.append(contentsOf: exerciseTimesForTodayTarget)
             }
             
-            // Bildirimler için daha uzun bir Süre al (örn: 1 hafta)
-            let nextTimes = selectedExercise.reminderInterval.nextOccurrences(from: now, workSchedule: schedule, limit: 50)
-            let exerciseTimes = nextTimes.map { (exercise, $0) }
-            allUpcomingExercises.append(contentsOf: exerciseTimes)
+            // Önce zamanları sırala
+            allUpcomingExercises = allUpcomingExercises
+                .filter { $0.1 > now }
+                .sorted { $0.1 < $1.1 }
             
-            let nextTimesForTodayTarget = selectedExercise.reminderInterval.nextOccurrences(from: now, workSchedule: schedule, limit: 5000)
-            let exerciseTimesForTodayTarget = nextTimesForTodayTarget.map { (exercise, $0) }
-            allUpcomingExercisesForTodayTarget.append(contentsOf: exerciseTimesForTodayTarget)
+            // Egzersizler arasında minimum 5 dakikalık aralık olmasını sağla
+            if !allUpcomingExercises.isEmpty {
+                var adjustedExercises: [(Exercise, Date)] = []
+                adjustedExercises.append(allUpcomingExercises[0]) // İlk egzersizi olduğu gibi ekle
+                
+                // Diğer egzersizleri kontrol et ve gerekirse ayarla
+                for i in 1..<allUpcomingExercises.count {
+                    let previousExercise = adjustedExercises.last!
+                    let currentExercise = allUpcomingExercises[i]
+                    
+                    // İki egzersiz arasındaki farkı hesapla (saniye cinsinden)
+                    let timeDifference = currentExercise.1.timeIntervalSince(previousExercise.1)
+                    
+                    if timeDifference < 300 { // 5 dakika = 300 saniye
+                        // Eğer fark 5 dakikadan azsa, önceki egzersizden 5 dakika sonrasına ayarla
+                        let newTime = previousExercise.1.addingTimeInterval(300)
+                        adjustedExercises.append((currentExercise.0, newTime))
+                    } else {
+                        // Fark zaten 5 dakikadan fazlaysa olduğu gibi ekle
+                        adjustedExercises.append(currentExercise)
+                    }
+                }
+                
+                // Ayarlanmış zamanları geri ata
+                allUpcomingExercises = adjustedExercises
+            }
+            
+            // Hesaplama durumunu ve son seçili egzersizleri güncelle
+            exerciseTimesCalculated = true
+            lastSelectedExerciseIds = currentSelectedExerciseIds
+        } else {
+            print("Egzersiz zamanları korunuyor, sadece geçmiş zamanlar filtreleniyor...")
+            
+            // Sadece geçmiş zamanları filtrele
+            allUpcomingExercises = allUpcomingExercises
+                .filter { $0.1 > now }
         }
-        
-        // Tüm zamanları sırala
-        allUpcomingExercises = allUpcomingExercises
-            .filter { $0.1 > now }
-            .sorted { $0.1 < $1.1 }
         
         // Bugünün egzersizlerini göster
         let todayEnd = calendar.date(bySettingHour: 23, minute: 59, second: 59, of: now) ?? now
@@ -202,6 +253,9 @@ final class DashboardViewModel: ObservableObject, UserExercisesServiceDelegate {
     // MARK: - UserExercisesServiceDelegate
     func userExercisesDidChange() {
         Task {
+            // Kullanıcı egzersizleri değiştiğinde, exerciseTimesCalculated'i sıfırla
+            // böylece zamanlar yeniden hesaplanacak
+            exerciseTimesCalculated = false
             await loadExercises()
         }
     }
